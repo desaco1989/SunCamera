@@ -304,7 +304,7 @@ public class CameraUtil {
      *
      * @param mCamera mCamera
      */
-    private void turnLightOn(Camera mCamera) {
+    public void turnLightOn(Camera mCamera) {
         if (mCamera == null) {
             return;
         }
@@ -326,13 +326,12 @@ public class CameraUtil {
         }
     }
 
-
     /**
      * 自动模式闪光灯
      *
      * @param mCamera mCamera
      */
-    private void turnLightAuto(Camera mCamera) {
+    public void turnLightAuto(Camera mCamera) {
         if (mCamera == null) {
             return;
         }
@@ -354,13 +353,12 @@ public class CameraUtil {
         }
     }
 
-
     /**
      * 关闭闪光灯
      *
      * @param mCamera mCamera
      */
-    private void turnLightOff(Camera mCamera) {
+    public void turnLightOff(Camera mCamera) {
         if (mCamera == null) {
             return;
         }

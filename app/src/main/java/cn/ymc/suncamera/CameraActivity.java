@@ -52,6 +52,11 @@ public class CameraActivity extends BaseActivity implements SurfaceHolder.Callba
      */
     private int mCameraId = 0;
     /**
+     * 闪光灯类型 0 ：关闭 1： 打开 2：自动
+     */
+    private int light_type = 0;
+
+    /**
      * 图片高度
      */
     private int picHeight;
@@ -91,7 +96,22 @@ public class CameraActivity extends BaseActivity implements SurfaceHolder.Callba
         switch (view.getId()) {
             // 点击拍照
             case R.id.img_camera:
-
+                switch (light_type) {
+                    case 0:
+                        //关闭
+                        CameraUtil.getInstance().turnLightOff(mCamera);
+                        break;
+                    case 1:
+                        CameraUtil.getInstance().turnLightOn(mCamera);
+                        break;
+                    case 2:
+                        //自动
+                        CameraUtil.getInstance().turnLightAuto(mCamera);
+                        break;
+                        default:
+                            break;
+                }
+                takePhoto();
                 break;
             // 切换闪光灯
             case R.id.camera_flash:
@@ -108,6 +128,14 @@ public class CameraActivity extends BaseActivity implements SurfaceHolder.Callba
             default:
                 break;
         }
+    }
+
+    /**
+     * 拍照
+     */
+    private void takePhoto() {
+
+
     }
 
     @Override
