@@ -29,8 +29,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
- * Created by yue on 15/10/29.
  * Bitmap处理工具
+ * @date 2019年1月25日 14:27:33
  */
 public class BitmapUtils {
     private BitmapUtils() {

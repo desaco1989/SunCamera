@@ -7,6 +7,9 @@ import android.widget.RelativeLayout;
 import butterknife.BindView;
 import cn.tongue.tonguecamera.util.AppConstant;
 
+/**
+ * 显示照片界面
+ */
 public class ShowPicActivity extends BaseActivity {
     @BindView(R.id.img)
     ImageView iv;
