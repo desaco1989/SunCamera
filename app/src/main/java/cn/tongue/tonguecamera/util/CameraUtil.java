@@ -1,4 +1,4 @@
-package cn.ymc.suncamera.util;
+package cn.tongue.tonguecamera.util;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -114,7 +114,7 @@ public class CameraUtil {
     }
 
 
-    private Bitmap setTakePicktrueOrientation(int id, Bitmap bitmap) {
+    public Bitmap setTakePicktrueOrientation(int id, Bitmap bitmap) {
         Camera.CameraInfo info = new Camera.CameraInfo();
         Camera.getCameraInfo(id, info);
         bitmap = rotaingImageView(id, info.orientation, bitmap);

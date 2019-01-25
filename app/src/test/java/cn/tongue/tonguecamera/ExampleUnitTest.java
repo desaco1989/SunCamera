@@ -1,4 +1,4 @@
-package cn.ymc.suncamera;
+package cn.tongue.tonguecamera;
 
 import org.junit.Test;
 

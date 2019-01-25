@@ -1,4 +1,4 @@
-package cn.ymc.suncamera;
+package cn.tongue.tonguecamera;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

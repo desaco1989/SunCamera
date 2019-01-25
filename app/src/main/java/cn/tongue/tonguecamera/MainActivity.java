@@ -1,16 +1,13 @@
-package cn.ymc.suncamera;
+package cn.tongue.tonguecamera;
 
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
 
 import com.yanzhenjie.permission.Action;
 import com.yanzhenjie.permission.AndPermission;
@@ -21,6 +18,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.OnClick;
+import cn.tongue.tonguecamera.util.AppConstant;
 
 /**
  * 首页
@@ -62,6 +60,26 @@ public class MainActivity extends BaseActivity {
                 break;
             default:
                 break;
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(resultCode != AppConstant.RESULT_CODE.RESULT_OK){
+            return;
+        }
+
+        if(requestCode == 0){
+            String img_path = data.getStringExtra(AppConstant.KEY.IMG_PATH);
+
+            int picWidth = data.getIntExtra(AppConstant.KEY.PIC_WIDTH, 0);
+            int picHeight = data.getIntExtra(AppConstant.KEY.PIC_HEIGHT, 0);
+            Intent intent = new Intent(activity, ShowPicActivity.class);
+            intent.putExtra(AppConstant.KEY.PIC_WIDTH, picWidth);
+            intent.putExtra(AppConstant.KEY.PIC_HEIGHT, picHeight);
+            intent.putExtra(AppConstant.KEY.IMG_PATH, img_path);
+            startActivity(intent);
         }
     }
 

@@ -1,6 +1,10 @@
-package cn.ymc.suncamera;
+package cn.tongue.tonguecamera;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.hardware.Camera;
+import android.os.Environment;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -9,15 +13,20 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.Toast;
 
+import java.io.File;
 import java.io.IOException;
 
 import butterknife.BindView;
 import butterknife.OnClick;
-import cn.ymc.suncamera.util.CameraUtil;
+import cn.tongue.tonguecamera.util.AppConstant;
+import cn.tongue.tonguecamera.util.BitmapUtils;
+import cn.tongue.tonguecamera.util.CameraUtil;
 
 /**
  * 拍照界面
+ * 5.0 版本以前的拍照
  *
  * @author ymc
  */
@@ -99,27 +108,57 @@ public class CameraActivity extends BaseActivity implements SurfaceHolder.Callba
                 switch (light_type) {
                     case 0:
                         //关闭
-                        CameraUtil.getInstance().turnLightOff(mCamera);
+                        cameraInstance.turnLightOff(mCamera);
                         break;
                     case 1:
-                        CameraUtil.getInstance().turnLightOn(mCamera);
+                        cameraInstance.turnLightOn(mCamera);
                         break;
                     case 2:
                         //自动
-                        CameraUtil.getInstance().turnLightAuto(mCamera);
+                        cameraInstance.turnLightAuto(mCamera);
                         break;
-                        default:
-                            break;
+                    default:
+                        break;
                 }
                 takePhoto();
                 break;
             // 切换闪光灯
             case R.id.camera_flash:
-
+                if (mCameraId == 1) {
+                    Toast.makeText(this, "请切换到后置摄像头", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                Camera.Parameters parameters = mCamera.getParameters();
+                switch (light_type) {
+                    case 0:
+                        //打开
+                        light_type = 1;
+                        ivFlash.setImageResource(R.drawable.icon_camera_on);
+                        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);//开启
+                        mCamera.setParameters(parameters);
+                        break;
+                    case 1:
+                        //自动
+                        light_type = 2;
+                        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
+                        mCamera.setParameters(parameters);
+                        ivFlash.setImageResource(R.drawable.icon_camera_a);
+                        break;
+                    case 2:
+                        //关闭
+                        light_type = 0;
+                        //关闭
+                        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                        mCamera.setParameters(parameters);
+                        ivFlash.setImageResource(R.drawable.icon_camera_off);
+                        break;
+                    default:
+                        break;
+                }
                 break;
             //切换前后摄像头
             case R.id.camera_switch:
-
+                switchCamera();
                 break;
             // 返回按钮
             case R.id.iv_back:
@@ -131,10 +170,48 @@ public class CameraActivity extends BaseActivity implements SurfaceHolder.Callba
     }
 
     /**
+     * 切换前后摄像头
+     */
+    public void switchCamera() {
+        releaseCamera();
+        mCameraId = (mCameraId + 1) % Camera.getNumberOfCameras();
+        mCamera = getCamera(mCameraId);
+        if (mHolder != null) {
+            startPreview(mCamera, mHolder);
+        }
+    }
+
+    /**
      * 拍照
      */
     private void takePhoto() {
-
+        mCamera.takePicture(null, null, new Camera.PictureCallback() {
+            @Override
+            public void onPictureTaken(byte[] data, Camera camera) {
+                isView = false;
+                //将data 转换为位图 或者你也可以直接保存为文件使用 FileOutputStream
+                //这里我相信大部分都有其他用处把 比如加个水印 后续再讲解
+                Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+                Bitmap saveBitmap = cameraInstance.setTakePicktrueOrientation(mCameraId, bitmap);
+                saveBitmap = Bitmap.createScaledBitmap(saveBitmap, screenWidth, screenHeight, true);
+                String imgpath = getExternalFilesDir(Environment.DIRECTORY_DCIM).getPath() +
+                        File.separator + System.currentTimeMillis() + ".jpeg";
+                Log.e(TAG, "imgpath: ---  " + imgpath);
+                BitmapUtils.saveJPGE_After(getApplicationContext(), saveBitmap, imgpath, 100);
+                if (!bitmap.isRecycled()) {
+                    bitmap.recycle();
+                }
+                if (!saveBitmap.isRecycled()) {
+                    saveBitmap.recycle();
+                }
+                Intent intent = new Intent();
+                intent.putExtra(AppConstant.KEY.IMG_PATH, imgpath);
+                intent.putExtra(AppConstant.KEY.PIC_WIDTH, screenWidth);
+                intent.putExtra(AppConstant.KEY.PIC_HEIGHT, picHeight);
+                setResult(AppConstant.RESULT_CODE.RESULT_OK, intent);
+                finish();
+            }
+        });
 
     }
 
@@ -218,7 +295,7 @@ public class CameraActivity extends BaseActivity implements SurfaceHolder.Callba
         try {
             camera = Camera.open(id);
         } catch (Exception e) {
-            Log.e(TAG, "getCamera: "+e);
+            Log.e(TAG, "getCamera: " + e);
         }
         return camera;
     }

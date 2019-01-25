@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="cn.ymc.suncamera">
+    package="cn.tongue.tonguecamera">
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -13,7 +13,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity"
+        <activity android:name="cn.tongue.tonguecamera.MainActivity"
 
             >
             <intent-filter>
@@ -22,7 +22,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".CameraActivity"></activity>
+        <activity android:name="cn.tongue.tonguecamera.CameraActivity">
+
+        </activity>
+
+        <activity android:name=".ShowPicActivity">
+
+        </activity>
     </application>
 
 </manifest>
