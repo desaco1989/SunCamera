@@ -20,6 +20,10 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+                <!-- 设置为开机显示应用 -->
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.MONKEY" />
             </intent-filter>
         </activity>
         <activity android:name="cn.tongue.tonguecamera.CameraActivity">
@@ -29,6 +33,14 @@
         <activity android:name=".ShowPicActivity">
 
         </activity>
+
+        <!--开机广播接受者-->
+        <receiver android:name=".OpenReceiver">
+            <intent-filter>
+                <!--注册开机广播地址-->
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

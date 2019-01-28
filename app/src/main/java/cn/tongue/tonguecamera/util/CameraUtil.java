@@ -223,8 +223,8 @@ public class CameraUtil {
         int i = 0;
         for(int x=0;x<list.size();x++){
             Size s = list.get(x);
-            // camera 中的宽度和高度 相反
-            if((s.width == th) && (s.height == minWidth)){
+            // camera 中的宽度和高度 相反 因为测试板子原因 这里暂时 替换 && 为 ||
+            if((s.width == th) || (s.height == minWidth)){
                 i = x;
                 break;
             }
