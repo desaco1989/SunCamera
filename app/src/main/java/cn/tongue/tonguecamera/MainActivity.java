@@ -51,12 +51,16 @@ public class MainActivity extends BaseActivity {
         btn.setText(stringFromJNI());
     }
 
-    @OnClick({R.id.btn_camera})
+    @OnClick({R.id.btn_camera,R.id.btn_camera2})
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.btn_camera:
                 Intent intent = new Intent(this, CameraActivity.class);
                 startActivityForResult(intent, 0);
+                break;
+            case R.id.btn_camera2:
+                Intent intent2 = new Intent(this, GoogleCameraActivity.class);
+                startActivityForResult(intent2, 0);
                 break;
             default:
                 break;

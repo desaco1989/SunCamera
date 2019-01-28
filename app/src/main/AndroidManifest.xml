@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -13,34 +14,31 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="cn.tongue.tonguecamera.MainActivity"
-
-            >
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
                 <!-- 设置为开机显示应用 -->
-                <category android:name="android.intent.category.HOME" />
+                <!-- <category android:name="android.intent.category.HOME" /> -->
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.MONKEY" />
             </intent-filter>
         </activity>
-        <activity android:name="cn.tongue.tonguecamera.CameraActivity">
+        <activity android:name=".CameraActivity" />
+        <activity android:name=".ShowPicActivity" />
 
-        </activity>
-
-        <activity android:name=".ShowPicActivity">
-
-        </activity>
-
-        <!--开机广播接受者-->
+        <!-- 开机广播接受者 -->
         <receiver android:name=".OpenReceiver">
             <intent-filter>
-                <!--注册开机广播地址-->
+
+                <!-- 注册开机广播地址 -->
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+
+        <activity android:name=".Camera2Activity" />
+        <activity android:name=".GoogleCameraActivity"></activity>
     </application>
 
 </manifest>
