@@ -28,6 +28,7 @@ public class CameraUtil {
     private CameraAscendSizeComparator ascendSizeComparator = new CameraAscendSizeComparator();
     private static CameraUtil instance = null;
 
+
     private CameraUtil() {
 
     }
@@ -194,7 +195,7 @@ public class CameraUtil {
      * @return Size
      */
     public Size getPropSizeForHeight(List<Size> list, int minHeight) {
-        Collections.sort(list, new CameraAscendSizeComparatorForHeight());
+        Collections.sort(list, ascendSizeComparator);
         int i = 0;
         for (Size s : list) {
             if ((s.height >= minHeight)) {
@@ -205,6 +206,46 @@ public class CameraUtil {
         }
         if (i == list.size()) {
             i = list.size();
+        }
+        return list.get(i);
+    }
+
+    /**
+     * 根据 宽度和高度找到是否有相等的 尺寸  如果没有 就获取最小的 值
+     * @param list list
+     * @param th 高度
+     * @param minWidth 宽度
+     * @return size
+     */
+    public  Size getPicPreviewSize(List<Camera.Size> list, int th, int minWidth){
+        Collections.sort(list, ascendSizeComparator);
+
+        int i = 0;
+        for(int x=0;x<list.size();x++){
+            Size s = list.get(x);
+            // camera 中的宽度和高度 相反
+            if((s.width == th) && (s.height == minWidth)){
+                i = x;
+                break;
+            }
+        }
+        //如果没找到，就选最小的size 0
+        return list.get(i);
+    }
+
+    public Size getPropPictureSize(List<Camera.Size> list, float th, int minWidth){
+        Collections.sort(list, ascendSizeComparator);
+
+        int i = 0;
+        for(Size s:list){
+            if((s.width >= minWidth) && equalRate(s, th)){
+                Log.i(TAG, "PictureSize : w = " + s.width + "h = " + s.height);
+                break;
+            }
+            i++;
+        }
+        if(i == list.size()){
+            i = 0;//如果没找到，就选最小的size
         }
         return list.get(i);
     }

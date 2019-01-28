@@ -271,10 +271,12 @@ public class CameraActivity extends BaseActivity implements SurfaceHolder.Callba
             parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
         }
         //根据屏幕尺寸获取最佳 大小
-        Camera.Size previewSize = cameraInstance.getPropSizeForHeight(parameters.getSupportedPreviewSizes(), screenWidth);
+        Camera.Size previewSize = cameraInstance.getPicPreviewSize(parameters.getSupportedPreviewSizes(),
+                screenHeight, screenWidth);
         parameters.setPreviewSize(previewSize.width, previewSize.height);
 
-        Camera.Size pictrueSize = cameraInstance.getPropSizeForHeight(parameters.getSupportedPictureSizes(), screenHeight);
+        Camera.Size pictrueSize = cameraInstance.getPicPreviewSize(parameters.getSupportedPictureSizes(),
+                screenHeight,screenWidth);
         parameters.setPictureSize(pictrueSize.width, pictrueSize.height);
         camera.setParameters(parameters);
 //        picHeight = (screenWidth * pictrueSize.width) / pictrueSize.height;
