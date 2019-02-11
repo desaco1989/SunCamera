@@ -57,15 +57,105 @@ import butterknife.OnClick;
 import cn.tongue.tonguecamera.view.AutoFitTextureView;
 
 /**
- *  google 拍照 demo
- *  @author ymc
- *  @date 2019年1月28日 17:32:45
+ * google 拍照 demo
+ *
+ * @author ymc
+ * @date 2019年1月28日 17:32:45
+ * @url https://github.com/googlesamples/android-Camera2Basic
  */
 
 
 public class GoogleCameraActivity extends BaseActivity {
+    private static final String TAG = "GoogleCameraActivity";
     @BindView(R.id.textureView_g)
     AutoFitTextureView mTextureView;
+
+    /**
+     * Conversion from screen rotation to JPEG orientation.
+     */
+    private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+    private static final int REQUEST_CAMERA_PERMISSION = 1;
+    /**
+     * 相机预览状态
+     */
+    private static final int STATE_PREVIEW = 0;
+    /**
+     * 等待相机锁定
+     */
+    private static final int STATE_WAITING_LOCK = 1;
+    /**
+     * 相机状态：等待曝光处于预捕获状态。
+     */
+    private static final int STATE_WAITING_PRECAPTURE = 2;
+    /**
+     * 相机状态：等待曝光状态不是预捕获。
+     */
+    private static final int STATE_WAITING_NON_PRECAPTURE = 3;
+    /**
+     * 相机状态：已拍摄照片。
+     */
+    private static final int STATE_PICTURE_TAKEN = 4;
+    /**
+     * Camera2 API保证的最大预览宽度
+     */
+    private static final int MAX_PREVIEW_WIDTH = 1920;
+    /**
+     * Camera2 API保证的最大预览高度
+     */
+    private static final int MAX_PREVIEW_HEIGHT = 1280;
+    /**
+     * 当前拍照id
+     */
+    private String mCameraId;
+    /**
+     * 相机预览
+     */
+    private CameraCaptureSession mCaptureSession;
+    private CameraDevice mCameraDevice;
+    /**
+     * 预览
+     */
+    private Size mPreviewSize;
+    /**
+     * 相机预览
+     */
+    private CaptureRequest.Builder mPreviewRequestBuilder;
+    private CaptureRequest mPreviewRequest;
+
+    /**
+     * 当前相机状态.
+     */
+    private int mState = STATE_PREVIEW;
+
+    /**
+     * 在关闭相机之前阻止应用程序退出
+     */
+    private Semaphore mCameraOpenCloseLock = new Semaphore(1);
+
+    /**
+     * 当前相机设备是否支持Flash
+     */
+    private boolean mFlashSupported;
+
+    /**
+     * 相机传感器的方向
+     */
+    private int mSensorOrientation;
+
+    private HandlerThread mBackgroundThread;
+
+    private Handler mBackgroundHandler;
+
+    private ImageReader mImageReader;
+
+    private File mFile;
+
+    static {
+        ORIENTATIONS.append(Surface.ROTATION_0, 90);
+        ORIENTATIONS.append(Surface.ROTATION_90, 0);
+        ORIENTATIONS.append(Surface.ROTATION_180, 270);
+        ORIENTATIONS.append(Surface.ROTATION_270, 180);
+    }
 
     @Override
     protected int getLayoutId() {
@@ -79,66 +169,11 @@ public class GoogleCameraActivity extends BaseActivity {
 
     @Override
     protected void initData() {
-
+        mFile = new File(getExternalFilesDir(null), "pic.jpg");
     }
 
     /**
-     * Conversion from screen rotation to JPEG orientation.
-     */
-    private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
-    private static final int REQUEST_CAMERA_PERMISSION = 1;
-    private static final String FRAGMENT_DIALOG = "dialog";
-
-    static {
-        ORIENTATIONS.append(Surface.ROTATION_0, 90);
-        ORIENTATIONS.append(Surface.ROTATION_90, 0);
-        ORIENTATIONS.append(Surface.ROTATION_180, 270);
-        ORIENTATIONS.append(Surface.ROTATION_270, 180);
-    }
-
-    /**
-     * Tag for the {@link Log}.
-     */
-    private static final String TAG = "Camera2BasicFragment";
-
-    /**
-     * Camera state: Showing camera preview.
-     */
-    private static final int STATE_PREVIEW = 0;
-
-    /**
-     * Camera state: Waiting for the focus to be locked.
-     */
-    private static final int STATE_WAITING_LOCK = 1;
-
-    /**
-     * Camera state: Waiting for the exposure to be precapture state.
-     */
-    private static final int STATE_WAITING_PRECAPTURE = 2;
-
-    /**
-     * Camera state: Waiting for the exposure state to be something other than precapture.
-     */
-    private static final int STATE_WAITING_NON_PRECAPTURE = 3;
-
-    /**
-     * Camera state: Picture was taken.
-     */
-    private static final int STATE_PICTURE_TAKEN = 4;
-
-    /**
-     * Max preview width that is guaranteed by Camera2 API
-     */
-    private static final int MAX_PREVIEW_WIDTH = 1920;
-
-    /**
-     * Max preview height that is guaranteed by Camera2 API
-     */
-    private static final int MAX_PREVIEW_HEIGHT = 1080;
-
-    /**
-     * {@link TextureView.SurfaceTextureListener} handles several lifecycle events on a
-     * {@link TextureView}.
+     * SurfaceTextureListener  监听事件
      */
     private final TextureView.SurfaceTextureListener mSurfaceTextureListener
             = new TextureView.SurfaceTextureListener() {
@@ -163,38 +198,17 @@ public class GoogleCameraActivity extends BaseActivity {
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture texture) {
         }
-
     };
 
     /**
-     * ID of the current {@link CameraDevice}.
-     */
-    private String mCameraId;
-
-    /**
-     * A {@link CameraCaptureSession } for camera preview.
-     */
-    private CameraCaptureSession mCaptureSession;
-
-    /**
-     * A reference to the opened {@link CameraDevice}.
-     */
-    private CameraDevice mCameraDevice;
-
-    /**
-     * The {@link android.util.Size} of camera preview.
-     */
-    private Size mPreviewSize;
-
-    /**
-     * {@link CameraDevice.StateCallback} is called when {@link CameraDevice} changes its state.
+     * CameraDevice 改变状态时候 调用
      */
     private final CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
 
         @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
         @Override
         public void onOpened(@NonNull CameraDevice cameraDevice) {
-            // This method is called when the camera is opened.  We start camera preview here.
+            //打开相机时会调用此方法。 我们在这里开始相机预览。
             mCameraOpenCloseLock.release();
             mCameraDevice = cameraDevice;
             createCameraPreviewSession();
@@ -218,32 +232,10 @@ public class GoogleCameraActivity extends BaseActivity {
     };
 
     /**
-     * An additional thread for running tasks that shouldn't block the UI.
-     */
-    private HandlerThread mBackgroundThread;
-
-    /**
-     * A {@link Handler} for running tasks in the background.
-     */
-    private Handler mBackgroundHandler;
-
-    /**
-     * An {@link ImageReader} that handles still image capture.
-     */
-    private ImageReader mImageReader;
-
-    /**
-     * This is the output file for our picture.
-     */
-    private File mFile;
-
-    /**
-     * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
-     * still image is ready to be saved.
+     * ImageReader 的回调对象。 静止图像已准备好保存。
      */
     private final ImageReader.OnImageAvailableListener mOnImageAvailableListener
             = new ImageReader.OnImageAvailableListener() {
-
         @Override
         public void onImageAvailable(ImageReader reader) {
             mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
@@ -252,39 +244,7 @@ public class GoogleCameraActivity extends BaseActivity {
     };
 
     /**
-     * {@link CaptureRequest.Builder} for the camera preview
-     */
-    private CaptureRequest.Builder mPreviewRequestBuilder;
-
-    /**
-     * {@link CaptureRequest} generated by {@link #mPreviewRequestBuilder}
-     */
-    private CaptureRequest mPreviewRequest;
-
-    /**
-     * The current state of camera state for taking pictures.
-     *
-     * @see #mCaptureCallback
-     */
-    private int mState = STATE_PREVIEW;
-
-    /**
-     * A {@link Semaphore} to prevent the app from exiting before closing the camera.
-     */
-    private Semaphore mCameraOpenCloseLock = new Semaphore(1);
-
-    /**
-     * Whether the current camera device supports Flash or not.
-     */
-    private boolean mFlashSupported;
-
-    /**
-     * Orientation of the camera sensor
-     */
-    private int mSensorOrientation;
-
-    /**
-     * A {@link CameraCaptureSession.CaptureCallback} that handles events related to JPEG capture.
+     * 处理与jpg文件捕捉的事件监听
      */
     private CameraCaptureSession.CaptureCallback mCaptureCallback
             = new CameraCaptureSession.CaptureCallback() {
@@ -293,7 +253,7 @@ public class GoogleCameraActivity extends BaseActivity {
         private void process(CaptureResult result) {
             switch (mState) {
                 case STATE_PREVIEW: {
-                    // We have nothing to do when the camera preview is working normally.
+                    // 预览正常
                     break;
                 }
                 case STATE_WAITING_LOCK: {
@@ -302,7 +262,6 @@ public class GoogleCameraActivity extends BaseActivity {
                         captureStillPicture();
                     } else if (CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED == afState ||
                             CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED == afState) {
-                        // CONTROL_AE_STATE can be null on some devices
                         Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
                         if (aeState == null ||
                                 aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
@@ -315,7 +274,6 @@ public class GoogleCameraActivity extends BaseActivity {
                     break;
                 }
                 case STATE_WAITING_PRECAPTURE: {
-                    // CONTROL_AE_STATE can be null on some devices
                     Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
                     if (aeState == null ||
                             aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE ||
@@ -325,7 +283,6 @@ public class GoogleCameraActivity extends BaseActivity {
                     break;
                 }
                 case STATE_WAITING_NON_PRECAPTURE: {
-                    // CONTROL_AE_STATE can be null on some devices
                     Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
                     if (aeState == null || aeState != CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
                         mState = STATE_PICTURE_TAKEN;
@@ -357,28 +314,23 @@ public class GoogleCameraActivity extends BaseActivity {
     };
 
     /**
-     * Given {@code choices} of {@code Size}s supported by a camera, choose the smallest one that
-     * is at least as large as the respective texture view size, and that is at most as large as the
-     * respective max size, and whose aspect ratio matches with the specified value. If such size
-     * doesn't exist, choose the largest one that is at most as large as the respective max size,
-     * and whose aspect ratio matches with the specified value.
+     * 给定摄像机支持的尺寸 否则选择最小的一个尺寸
      *
-     * @param choices           The list of sizes that the camera supports for the intended output
-     *                          class
-     * @param textureViewWidth  The width of the texture view relative to sensor coordinate
-     * @param textureViewHeight The height of the texture view relative to sensor coordinate
-     * @param maxWidth          The maximum width that can be chosen
-     * @param maxHeight         The maximum height that can be chosen
-     * @param aspectRatio       The aspect ratio
-     * @return The optimal {@code Size}, or an arbitrary one if none were big enough
+     * @param choices           相机支持预期输出的尺寸列表
+     * @param textureViewWidth  纹理视图相对于传感器坐标的宽度
+     * @param textureViewHeight 纹理视图相对于传感器坐标的高度
+     * @param maxWidth          最大宽度
+     * @param maxHeight         最大高度
+     * @param aspectRatio       纵横比
+     * @return size
      */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private static Size chooseOptimalSize(Size[] choices, int textureViewWidth,
                                           int textureViewHeight, int maxWidth, int maxHeight, Size aspectRatio) {
 
-        // Collect the supported resolutions that are at least as big as the preview Surface
+        // 收集至少与预览Surface一样大的支持的分辨率
         List<Size> bigEnough = new ArrayList<>();
-        // Collect the supported resolutions that are smaller than the preview Surface
+        // 收集小于预览Surface的支持的分辨率
         List<Size> notBigEnough = new ArrayList<>();
         int w = aspectRatio.getWidth();
         int h = aspectRatio.getHeight();
@@ -393,9 +345,7 @@ public class GoogleCameraActivity extends BaseActivity {
                 }
             }
         }
-
-        // Pick the smallest of those big enough. If there is no one big enough, pick the
-        // largest of those not big enough.
+        // 挑选适合的尺寸
         if (bigEnough.size() > 0) {
             return Collections.min(bigEnough, new CompareSizesByArea());
         } else if (notBigEnough.size() > 0) {
@@ -411,11 +361,7 @@ public class GoogleCameraActivity extends BaseActivity {
     public void onResume() {
         super.onResume();
         startBackgroundThread();
-
-        // When the screen is turned off and turned back on, the SurfaceTexture is already
-        // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
-        // a camera and start preview from here (otherwise, we wait until the surface is ready in
-        // the SurfaceTextureListener).
+        // 存在关联则打开相机，没有则绑定事件
         if (mTextureView.isAvailable()) {
             openCamera(mTextureView.getWidth(), mTextureView.getHeight());
         } else {
@@ -431,10 +377,10 @@ public class GoogleCameraActivity extends BaseActivity {
     }
 
     /**
-     * Sets up member variables related to camera.
+     * 设置与摄像头相关的成员变量。
      *
-     * @param width  The width of available size for camera preview
-     * @param height The height of available size for camera preview
+     * @param width  摄像机预览的可用大小宽度
+     * @param height 相机预览的可用尺寸高度
      */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @SuppressWarnings("SuspiciousNameCombination")
@@ -442,10 +388,9 @@ public class GoogleCameraActivity extends BaseActivity {
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
             for (String cameraId : manager.getCameraIdList()) {
-                CameraCharacteristics characteristics
-                        = manager.getCameraCharacteristics(cameraId);
+                CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
 
-                // We don't use a front facing camera in this sample.
+                // 不使用前置摄像头
                 Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
                 if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
                     continue;
@@ -456,20 +401,17 @@ public class GoogleCameraActivity extends BaseActivity {
                 if (map == null) {
                     continue;
                 }
-
-                // For still image captures, we use the largest available size.
+                // 静态图像捕获，选择最大可用大小。
                 Size largest = Collections.max(
                         Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
                         new CompareSizesByArea());
-                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
-                        ImageFormat.JPEG, /*maxImages*/2);
+                mImageReader = ImageReader.newInstance(largest.getWidth(),
+                        largest.getHeight(), ImageFormat.JPEG, 2);
                 mImageReader.setOnImageAvailableListener(
                         mOnImageAvailableListener, mBackgroundHandler);
 
-                // Find out if we need to swap dimension to get the preview size relative to sensor
-                // coordinate.
-                int displayRotation = activity.getWindowManager().getDefaultDisplay().getRotation();
-                //noinspection ConstantConditions
+                //了解我们是否需要交换尺寸以获得相对于传感器的预览尺寸
+                int displayRotation = getWindowManager().getDefaultDisplay().getRotation();
                 mSensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
                 boolean swappedDimensions = false;
                 switch (displayRotation) {
@@ -488,7 +430,6 @@ public class GoogleCameraActivity extends BaseActivity {
                     default:
                         Log.e(TAG, "Display rotation is invalid: " + displayRotation);
                 }
-
                 Point displaySize = new Point();
                 activity.getWindowManager().getDefaultDisplay().getSize(displaySize);
                 int rotatedPreviewWidth = width;
@@ -506,19 +447,15 @@ public class GoogleCameraActivity extends BaseActivity {
                 if (maxPreviewWidth > MAX_PREVIEW_WIDTH) {
                     maxPreviewWidth = MAX_PREVIEW_WIDTH;
                 }
-
                 if (maxPreviewHeight > MAX_PREVIEW_HEIGHT) {
                     maxPreviewHeight = MAX_PREVIEW_HEIGHT;
                 }
 
-                // Danger, W.R.! Attempting to use too large a preview size could  exceed the camera
-                // bus' bandwidth limitation, resulting in gorgeous previews but the storage of
-                // garbage capture data.
                 mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
                         rotatedPreviewWidth, rotatedPreviewHeight, maxPreviewWidth,
                         maxPreviewHeight, largest);
 
-                // We fit the aspect ratio of TextureView to the size of preview we picked.
+                // 将TextureView的宽高比与我们选择的预览大小相匹配。
                 int orientation = getResources().getConfiguration().orientation;
                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
                     mTextureView.setAspectRatio(
@@ -528,19 +465,24 @@ public class GoogleCameraActivity extends BaseActivity {
                             mPreviewSize.getHeight(), mPreviewSize.getWidth());
                 }
 
-                // Check if the flash is supported.
+                // 检查 远光灯
                 Boolean available = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
                 mFlashSupported = available == null ? false : available;
-
                 mCameraId = cameraId;
                 return;
             }
         } catch (CameraAccessException e) {
             e.printStackTrace();
-        } catch (NullPointerException e) {
+        } catch (NullPointerException ignored) {
         }
     }
 
+    /**
+     * 打开相机
+     *
+     * @param width
+     * @param height
+     */
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void openCamera(int width, int height) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -580,6 +522,7 @@ public class GoogleCameraActivity extends BaseActivity {
             if (null != mImageReader) {
                 mImageReader.close();
                 mImageReader = null;
+
             }
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted while trying to lock camera closing.", e);
@@ -589,7 +532,7 @@ public class GoogleCameraActivity extends BaseActivity {
     }
 
     /**
-     * Starts a background thread and its {@link Handler}.
+     * 打开 BackgroundThread
      */
     private void startBackgroundThread() {
         mBackgroundThread = new HandlerThread("CameraBackground");
@@ -598,7 +541,7 @@ public class GoogleCameraActivity extends BaseActivity {
     }
 
     /**
-     * Stops the background thread and its {@link Handler}.
+     * 关闭 BackgroundThread
      */
     private void stopBackgroundThread() {
         mBackgroundThread.quitSafely();
@@ -612,46 +555,33 @@ public class GoogleCameraActivity extends BaseActivity {
     }
 
     /**
-     * Creates a new {@link CameraCaptureSession} for camera preview.
+     * 创建一个新的相机预览
      */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void createCameraPreviewSession() {
         try {
             SurfaceTexture texture = mTextureView.getSurfaceTexture();
-            assert texture != null;
-
-            // We configure the size of default buffer to be the size of camera preview we want.
+            //将默认缓冲区的大小配置为相机预览的大小。
             texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
-
-            // This is the output Surface we need to start preview.
             Surface surface = new Surface(texture);
-
-            // We set up a CaptureRequest.Builder with the output Surface.
-            mPreviewRequestBuilder
-                    = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+            //使用Surface设置CaptureRequest.Builder
+            mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             mPreviewRequestBuilder.addTarget(surface);
-
-            // Here, we create a CameraCaptureSession for camera preview.
             mCameraDevice.createCaptureSession(Arrays.asList(surface, mImageReader.getSurface()),
                     new CameraCaptureSession.StateCallback() {
 
                         @Override
                         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
-                            // The camera is already closed
                             if (null == mCameraDevice) {
                                 return;
                             }
-
-                            // When the session is ready, we start displaying the preview.
                             mCaptureSession = cameraCaptureSession;
                             try {
-                                // Auto focus should be continuous for camera preview.
+                                // 自动变焦是连续的
                                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                                         CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-                                // Flash is automatically enabled when necessary.
                                 setAutoFlash(mPreviewRequestBuilder);
-
-                                // Finally, we start displaying the camera preview.
+                                // 显示相机预览
                                 mPreviewRequest = mPreviewRequestBuilder.build();
                                 mCaptureSession.setRepeatingRequest(mPreviewRequest,
                                         mCaptureCallback, mBackgroundHandler);
@@ -672,12 +602,10 @@ public class GoogleCameraActivity extends BaseActivity {
     }
 
     /**
-     * Configures the necessary {@link android.graphics.Matrix} transformation to `mTextureView`.
-     * This method should be called after the camera preview size is determined in
-     * setUpCameraOutputs and also the size of `mTextureView` is fixed.
+     * Matrix 转换配置为 mTextureView
      *
-     * @param viewWidth  The width of `mTextureView`
-     * @param viewHeight The height of `mTextureView`
+     * @param viewWidth  mTextureView 宽度
+     * @param viewHeight mTextureView 高度
      */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void configureTransform(int viewWidth, int viewHeight) {
@@ -705,7 +633,7 @@ public class GoogleCameraActivity extends BaseActivity {
     }
 
     /**
-     * Initiate a still image capture.
+     * 拍照
      */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void takePicture() {
@@ -713,15 +641,15 @@ public class GoogleCameraActivity extends BaseActivity {
     }
 
     /**
-     * Lock the focus as the first step for a still image capture.
+     * 锁定焦点设置
      */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void lockFocus() {
         try {
-            // This is how to tell the camera to lock focus.
+            // 相机锁定的方法
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
                     CameraMetadata.CONTROL_AF_TRIGGER_START);
-            // Tell #mCaptureCallback to wait for the lock.
+            // mCaptureCallback 等待锁定
             mState = STATE_WAITING_LOCK;
             mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
                     mBackgroundHandler);
@@ -731,16 +659,15 @@ public class GoogleCameraActivity extends BaseActivity {
     }
 
     /**
-     * Run the precapture sequence for capturing a still image. This method should be called when
-     * we get a response in {@link #mCaptureCallback} from {@link #lockFocus()}.
+     * 运行预捕获序列以捕获静止图像。 在调用此方法时调用
      */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void runPrecaptureSequence() {
         try {
-            // This is how to tell the camera to trigger.
+            // 相机触发的方法
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
                     CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
-            // Tell #mCaptureCallback to wait for the precapture sequence to be set.
+            // mCaptureCallback等待设置预捕获序列。
             mState = STATE_WAITING_PRECAPTURE;
             mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
                     mBackgroundHandler);
@@ -750,8 +677,7 @@ public class GoogleCameraActivity extends BaseActivity {
     }
 
     /**
-     * Capture a still picture. This method should be called when we get a response in
-     * {@link #mCaptureCallback} from both {@link #lockFocus()}.
+     * 拍摄静止图片。 当我们得到响应时，应该调用此方法
      */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void captureStillPicture() {
@@ -759,17 +685,15 @@ public class GoogleCameraActivity extends BaseActivity {
             if (null == activity || null == mCameraDevice) {
                 return;
             }
-            // This is the CaptureRequest.Builder that we use to take a picture.
             final CaptureRequest.Builder captureBuilder =
                     mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             captureBuilder.addTarget(mImageReader.getSurface());
 
-            // Use the same AE and AF modes as the preview.
+            // 使用与预览相同的AE和AF模式。
             captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                     CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
             setAutoFlash(captureBuilder);
 
-            // Orientation
             int rotation = getWindowManager().getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getOrientation(rotation));
 
@@ -780,7 +704,7 @@ public class GoogleCameraActivity extends BaseActivity {
                 public void onCaptureCompleted(@NonNull CameraCaptureSession session,
                                                @NonNull CaptureRequest request,
                                                @NonNull TotalCaptureResult result) {
-                    Log.d(TAG, mFile.toString());
+                    Log.e(TAG, mFile.toString());
                     unlockFocus();
                 }
             };
@@ -794,22 +718,16 @@ public class GoogleCameraActivity extends BaseActivity {
     }
 
     /**
-     * Retrieves the JPEG orientation from the specified screen rotation.
-     *
-     * @param rotation The screen rotation.
-     * @return The JPEG orientation (one of 0, 90, 270, and 360)
+     * 从指定的屏幕旋转中检索JPEG方向。
      */
     private int getOrientation(int rotation) {
-        // Sensor orientation is 90 for most devices, or 270 for some devices (eg. Nexus 5X)
-        // We have to take that into account and rotate JPEG properly.
-        // For devices with orientation of 90, we simply return our mapping from ORIENTATIONS.
-        // For devices with orientation of 270, we need to rotate the JPEG 180 degrees.
+        //对于方向为90的设备，我们只需从ORIENTATIONS返回我们的映射
+        //对于方向为270的设备，我们需要将JPEG旋转180度
         return (ORIENTATIONS.get(rotation) + mSensorOrientation + 270) % 360;
     }
 
     /**
-     * Unlock the focus. This method should be called when still image capture sequence is
-     * finished.
+     * 解锁焦点 在静止图像捕获序列时调用此方法
      */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void unlockFocus() {
@@ -830,11 +748,15 @@ public class GoogleCameraActivity extends BaseActivity {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    @OnClick({R.id.img_camera_g})
+    @OnClick({R.id.img_camera_g, R.id.iv_back_g})
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.img_camera_g: {
                 takePicture();
+                break;
+            }
+            case R.id.iv_back_g: {
+                finish();
                 break;
             }
             default:
@@ -851,17 +773,10 @@ public class GoogleCameraActivity extends BaseActivity {
     }
 
     /**
-     * Saves a JPEG {@link Image} into the specified {@link File}.
+     * 保存文件
      */
     private static class ImageSaver implements Runnable {
-
-        /**
-         * The JPEG image
-         */
         private final Image mImage;
-        /**
-         * The file we save the image into.
-         */
         private final File mFile;
 
         ImageSaver(Image image, File file) {
@@ -891,22 +806,19 @@ public class GoogleCameraActivity extends BaseActivity {
                 }
             }
         }
-
     }
 
     /**
-     * Compares two {@code Size}s based on their areas.
+     * 比较 两个 size
      */
     static class CompareSizesByArea implements Comparator<Size> {
 
         @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
         @Override
         public int compare(Size lhs, Size rhs) {
-            // We cast here to ensure the multiplications won't overflow
+            // 在这里投射以确保乘法不会溢出
             return Long.signum((long) lhs.getWidth() * lhs.getHeight() -
                     (long) rhs.getWidth() * rhs.getHeight());
         }
-
     }
-
 }
