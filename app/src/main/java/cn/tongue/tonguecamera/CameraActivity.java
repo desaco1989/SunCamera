@@ -53,6 +53,11 @@ public class CameraActivity extends BaseActivity implements SurfaceHolder.Callba
     private int screenWidth;
     private int screenHeight;
     /**
+     * 图片宽高
+     */
+    private int picWidth;
+
+    /**
      * 是否有界面
      */
     private boolean isView = true;
@@ -206,7 +211,7 @@ public class CameraActivity extends BaseActivity implements SurfaceHolder.Callba
                 }
                 Intent intent = new Intent();
                 intent.putExtra(AppConstant.KEY.IMG_PATH, imgpath);
-                intent.putExtra(AppConstant.KEY.PIC_WIDTH, screenWidth);
+                intent.putExtra(AppConstant.KEY.PIC_WIDTH, picWidth);
                 intent.putExtra(AppConstant.KEY.PIC_HEIGHT, picHeight);
                 setResult(AppConstant.RESULT_CODE.RESULT_OK, intent);
                 finish();
@@ -280,10 +285,10 @@ public class CameraActivity extends BaseActivity implements SurfaceHolder.Callba
         parameters.setPictureSize(pictrueSize.width, pictrueSize.height);
         camera.setParameters(parameters);
 //        picHeight = (screenWidth * pictrueSize.width) / pictrueSize.height;
-        picHeight = screenHeight;
+        picWidth = pictrueSize.width;
+        picHeight = pictrueSize.height;
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(screenWidth,
                 (screenWidth * pictrueSize.width) / pictrueSize.height);
-        params.gravity = Gravity.CENTER;
         svContent.setLayoutParams(params);
     }
 
