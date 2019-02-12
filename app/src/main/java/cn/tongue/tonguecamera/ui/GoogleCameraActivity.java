@@ -1,4 +1,4 @@
-package cn.tongue.tonguecamera;
+package cn.tongue.tonguecamera.ui;
 
 import android.Manifest;
 import android.content.Context;
@@ -48,6 +48,8 @@ import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.OnClick;
+import cn.tongue.tonguecamera.R;
+import cn.tongue.tonguecamera.base.BaseActivity;
 import cn.tongue.tonguecamera.view.AutoFitTextureView;
 
 /**

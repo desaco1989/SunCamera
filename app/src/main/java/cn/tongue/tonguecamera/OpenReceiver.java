@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import cn.tongue.tonguecamera.ui.MainActivity;
+
 /**
  * 开机
  * @packageName: cn.tongue.tonguecamera

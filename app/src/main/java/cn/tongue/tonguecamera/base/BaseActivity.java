@@ -1,4 +1,4 @@
-package cn.tongue.tonguecamera;
+package cn.tongue.tonguecamera.base;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -12,6 +12,7 @@ import android.view.WindowManager;
 
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import cn.tongue.tonguecamera.R;
 
 /**
  *  基础Activity

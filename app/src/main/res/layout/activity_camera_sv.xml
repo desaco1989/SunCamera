@@ -7,13 +7,14 @@
     tools:context="cn.tongue.tonguecamera.ui.CameraActivity">
 
     <FrameLayout
+        android:id="@+id/frame_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <SurfaceView
-            android:id="@+id/surfaceView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+        <!--<cn.tongue.tonguecamera.view.CameraV2GLSurfaceView-->
+            <!--android:id="@+id/surfaceView"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content" />-->
 
     </FrameLayout>
 
@@ -51,6 +52,7 @@
         android:layout_height="50dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
+        android:visibility="gone"
         android:background="#00ffffff"
         android:layout_alignParentTop="true"
         >

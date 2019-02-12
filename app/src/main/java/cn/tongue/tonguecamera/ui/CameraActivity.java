@@ -1,4 +1,4 @@
-package cn.tongue.tonguecamera;
+package cn.tongue.tonguecamera.ui;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -7,7 +7,6 @@ import android.hardware.Camera;
 import android.os.Environment;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -20,6 +19,8 @@ import java.io.IOException;
 
 import butterknife.BindView;
 import butterknife.OnClick;
+import cn.tongue.tonguecamera.R;
+import cn.tongue.tonguecamera.base.BaseActivity;
 import cn.tongue.tonguecamera.util.AppConstant;
 import cn.tongue.tonguecamera.util.BitmapUtils;
 import cn.tongue.tonguecamera.util.CameraUtil;

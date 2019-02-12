@@ -1,4 +1,4 @@
-package cn.tongue.tonguecamera;
+package cn.tongue.tonguecamera.ui;
 
 import android.Manifest;
 import android.content.Context;
@@ -18,6 +18,8 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.OnClick;
+import cn.tongue.tonguecamera.R;
+import cn.tongue.tonguecamera.base.BaseActivity;
 import cn.tongue.tonguecamera.util.AppConstant;
 
 /**
@@ -51,7 +53,7 @@ public class MainActivity extends BaseActivity {
         btn.setText(stringFromJNI());
     }
 
-    @OnClick({R.id.btn_camera,R.id.btn_camera2})
+    @OnClick({R.id.btn_camera, R.id.btn_camera2, R.id.btn_filter_camera2})
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.btn_camera:
@@ -62,6 +64,10 @@ public class MainActivity extends BaseActivity {
                 Intent intent2 = new Intent(this, GoogleCameraActivity.class);
                 startActivityForResult(intent2, 0);
                 break;
+            case R.id.btn_filter_camera2:
+                Intent intentFilter2 = new Intent(this, CameraSurfaceViewActivity.class);
+                startActivityForResult(intentFilter2, 0);
+                break;
             default:
                 break;
         }
@@ -70,19 +76,18 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(resultCode != AppConstant.RESULT_CODE.RESULT_OK){
+        if (resultCode != AppConstant.RESULT_CODE.RESULT_OK) {
             return;
         }
 
-        if(requestCode == 0){
-            String img_path = data.getStringExtra(AppConstant.KEY.IMG_PATH);
-
+        if (requestCode == 0) {
+            String imgPath = data.getStringExtra(AppConstant.KEY.IMG_PATH);
             int picWidth = data.getIntExtra(AppConstant.KEY.PIC_WIDTH, 0);
             int picHeight = data.getIntExtra(AppConstant.KEY.PIC_HEIGHT, 0);
             Intent intent = new Intent(activity, ShowPicActivity.class);
             intent.putExtra(AppConstant.KEY.PIC_WIDTH, picWidth);
             intent.putExtra(AppConstant.KEY.PIC_HEIGHT, picHeight);
-            intent.putExtra(AppConstant.KEY.IMG_PATH, img_path);
+            intent.putExtra(AppConstant.KEY.IMG_PATH, imgPath);
             startActivity(intent);
         }
     }

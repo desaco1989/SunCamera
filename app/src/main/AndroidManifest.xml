@@ -14,7 +14,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name=".ui.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -25,8 +25,8 @@
                 <category android:name="android.intent.category.MONKEY" />
             </intent-filter>
         </activity>
-        <activity android:name=".CameraActivity" />
-        <activity android:name=".ShowPicActivity" />
+        <activity android:name=".ui.CameraActivity" />
+        <activity android:name=".ui.ShowPicActivity" />
 
         <!-- 开机广播接受者 -->
         <receiver android:name=".OpenReceiver">
@@ -37,8 +37,13 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".Camera2Activity" />
-        <activity android:name=".GoogleCameraActivity"></activity>
+        <activity android:name=".ui.Camera2Activity" />
+        <activity android:name=".ui.GoogleCameraActivity">
+
+        </activity>
+        <activity android:name=".ui.CameraSurfaceViewActivity">
+
+        </activity>
     </application>
 
 </manifest>
