@@ -476,8 +476,8 @@ public class GoogleCameraActivity extends BaseActivity {
     /**
      * 打开相机
      *
-     * @param width
-     * @param height
+     * @param width 宽度
+     * @param height 长度
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void openCamera(int width, int height) {
@@ -518,7 +518,6 @@ public class GoogleCameraActivity extends BaseActivity {
             if (null != mImageReader) {
                 mImageReader.close();
                 mImageReader = null;
-
             }
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted while trying to lock camera closing.", e);
@@ -707,7 +706,7 @@ public class GoogleCameraActivity extends BaseActivity {
 
             mCaptureSession.stopRepeating();
             mCaptureSession.abortCaptures();
-            mCaptureSession.capture(captureBuilder.build(), CaptureCallback, null);
+            mCaptureSession.capture(captureBuilder.build(), CaptureCallback, mBackgroundHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }

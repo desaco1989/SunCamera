@@ -101,7 +101,6 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
             bIsPreviewStarted = true;
             return;
         }
-
         //glClear(GL_COLOR_BUFFER_BIT);
         glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
 
@@ -149,7 +148,7 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
             }
         });
         mCamera.setPreviewTexture(mSurfaceTexture);
-        mCamera.startPreview();
+        mCamera.createCameraPreviewSession();
         return true;
     }
 }
