@@ -48,8 +48,11 @@ import cn.tongue.tonguecamera.view.CameraV2GLSurfaceView;
 /**
  * camera2 拍照工具类
  *
+ * 参考url ： [https://blog.csdn.net/lb377463323/article/details/78054892]
+ *
  * @author ymc
  * @date 2019年2月12日 13:59:30
+ *
  */
 
 public class CameraV2 {

@@ -1,8 +1,5 @@
 package cn.tongue.tonguecamera.ui;
 
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.support.constraint.ConstraintLayout;
@@ -11,11 +8,6 @@ import android.util.Size;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.Toast;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -26,6 +18,7 @@ import cn.tongue.tonguecamera.view.CameraV2GLSurfaceView;
 
 /**
  * 基于 camera2 surfaceview 过滤界面
+ * 参考url ： [https://blog.csdn.net/lb377463323/article/details/78054892]
  *
  * @author ymc
  * @date 2019年2月12日 14:32:37
@@ -61,28 +54,6 @@ public class CameraSurfaceViewActivity extends BaseActivity {
         lp.height = size.getWidth();
         mCameraV2GLSurfaceView.setLayoutParams(lp);
         frameLayout.addView(mCameraV2GLSurfaceView);
-
-//        mCamera.setGetBitmapListerent(new CameraV2.GetBitmapListerent() {
-//            @Override
-//            public void onGetBitmap() {
-//                Drawable bit = mCameraV2GLSurfaceView.getBackground();
-//                BitmapDrawable bitmap = (BitmapDrawable) bit;
-//                Bitmap bitm = bitmap.getBitmap();
-//                if(bit!=null){
-//                    Toast.makeText(CameraSurfaceViewActivity.this,"获取bitmap 成功",Toast.LENGTH_SHORT).show();
-//                    try {
-//                        File mFile = new File(getExternalFilesDir(null), "pic1.jpg");
-//                        FileOutputStream fos = new FileOutputStream(mFile);
-//                        bitm.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-//                        fos.flush();
-//                        fos.close();
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//
-//            }
-//        });
     }
 
     @Override

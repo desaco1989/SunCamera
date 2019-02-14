@@ -48,6 +48,7 @@ import static android.opengl.GLES20.glViewport;
 
 /**
  * camera render
+ * 参考url ： [https://blog.csdn.net/lb377463323/article/details/78054892]
  *
  * @date 2019年2月12日 13:39:55
  * @author ymc
@@ -72,6 +73,8 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
     private int uTextureMatrixLocation = -1;
     private int uTextureSamplerLocation = -1;
     private int[] mFBOIds = new int[1];
+    private int[] fFrame = new int[1];
+    private int[] fTexture = new int[1];
 
     public void init(CameraV2GLSurfaceView surfaceView, CameraV2 camera,
                      boolean isPreviewStarted, Context context) {
@@ -144,8 +147,13 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
         //glDrawArrays(GL_TRIANGLES, 3, 3);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+        /**
+         * 根据标识 是否截图
+         * 参考url： [http://hounychang.github.io/2015/05/13/%E5%AF%B9GLSurfaceView%E6%88%AA%E5%9B%BE/]
+         */
         if (CameraV2GLSurfaceView.shouldTakePic) {
             CameraV2GLSurfaceView.shouldTakePic = false;
+//            bindfbo();
             int w = surfaceWidth;
             int h = surfaceHeight;
             int b[] = new int[w * h];
@@ -166,7 +174,7 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
             inBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.RGB_565);
             //为了图像能小一点，使用了RGB_565而不是ARGB_8888
             inBitmap.copyPixelsFromBuffer(buffer);
-            inBitmap = Bitmap.createBitmap(bt, w, h, Bitmap.Config.RGB_565);
+//            inBitmap = Bitmap.createBitmap(bt, w, h, Bitmap.Config.RGB_565);
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             inBitmap.compress(Bitmap.CompressFormat.JPEG, 90, bos);
             byte[] bitmapData = bos.toByteArray();
@@ -184,6 +192,8 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
                 inBitmap.recycle();
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+//                unbindfbo();
             }
         }
         long t2 = System.currentTimeMillis();
@@ -207,5 +217,40 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
         mCamera.setPreviewTexture(mSurfaceTexture);
         mCamera.createCameraPreviewSession();
         return true;
+    }
+
+    /**
+     * 改变截图时候界面卡顿的现象
+     * 参考url ： [https://blog.csdn.net/SXH_Android/article/details/78835966]
+     *
+     * 问题：加上后确实没有卡顿现象 但是截图会是 黑屏
+     */
+    private void bindfbo() {
+        GLES20.glGenFramebuffers(1, fFrame, 0);
+
+        GLES20.glGenTextures(1, fTexture, 0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, fTexture[0]);
+        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA,
+                surfaceWidth, surfaceHeight,0,
+                GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
+
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+
+        GLES20.glBindFramebuffer(GL_FRAMEBUFFER, fFrame[0]);
+        GLES20.glFramebufferTexture2D(GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0,GLES20.GL_TEXTURE_2D, fTexture[0], 0);
+
+        int status= GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER);
+        if(status !=GLES20.GL_FRAMEBUFFER_COMPLETE) {
+            throw new RuntimeException("status:"+status+", hex:"+Integer.toHexString(status));
+        }
+    }
+
+    private void unbindfbo() {
+        GLES20.glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        GLES20.glDeleteTextures(1, fTexture, 0);
+        GLES20.glDeleteFramebuffers(1, fFrame, 0);
     }
 }

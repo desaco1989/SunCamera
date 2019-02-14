@@ -8,6 +8,8 @@ import cn.tongue.tonguecamera.util.CameraV2;
 
 /**
  * CameraV2 GLSurfaceView
+ * 参考url ： [https://blog.csdn.net/lb377463323/article/details/78054892]
+ *
  * @date 2019年2月12日 13:41:16
  * @author ymc
  */
