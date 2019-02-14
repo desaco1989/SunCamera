@@ -14,12 +14,17 @@ import cn.tongue.tonguecamera.util.CameraV2;
 
 public class CameraV2GLSurfaceView extends GLSurfaceView {
     public static final String TAG = "CameraV2GLSurfaceView";
+    public static boolean shouldTakePic = false;
 
     public void init(CameraV2 camera, boolean isPreviewStarted, Context context) {
         setEGLContextClientVersion(2);
         CameraV2Renderer mCameraV2Renderer = new CameraV2Renderer();
         mCameraV2Renderer.init(this, camera, isPreviewStarted, context);
         setRenderer(mCameraV2Renderer);
+    }
+
+    public static void setShouldTakePic(boolean shouldTakePic) {
+        CameraV2GLSurfaceView.shouldTakePic = shouldTakePic;
     }
 
     public CameraV2GLSurfaceView(Context context) {

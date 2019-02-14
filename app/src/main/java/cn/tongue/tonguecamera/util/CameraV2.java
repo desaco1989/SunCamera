@@ -29,6 +29,7 @@ import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -41,6 +42,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+
+import cn.tongue.tonguecamera.view.CameraV2GLSurfaceView;
 
 /**
  * camera2 拍照工具类
@@ -126,6 +129,10 @@ public class CameraV2 {
      * 当前相机设备是否支持Flash
      */
     private boolean mFlashSupported;
+    /**
+     * 绘制容器
+     */
+    private Surface surface;
 
     public CameraV2(Activity activity) {
         mActivity = activity;
@@ -252,18 +259,6 @@ public class CameraV2 {
     }
 
     /**
-     * ImageReader 的回调对象。 静止图像已准备好保存。
-     */
-    private final ImageReader.OnImageAvailableListener mOnImageAvailableListener
-            = new ImageReader.OnImageAvailableListener() {
-        @Override
-        public void onImageAvailable(ImageReader reader) {
-            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
-        }
-
-    };
-
-    /**
      * 打开相机
      *
      * @return boolean
@@ -327,7 +322,7 @@ public class CameraV2 {
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void createCameraPreviewSession() {
         mSurfaceTexture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
-        Surface surface = new Surface(mSurfaceTexture);
+        surface = new Surface(mSurfaceTexture);
         try {
             mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             mPreviewRequestBuilder.addTarget(surface);
@@ -364,6 +359,19 @@ public class CameraV2 {
             e.printStackTrace();
         }
     }
+
+    /**
+     * ImageReader 的回调对象。 静止图像已准备好保存。
+     */
+    private final ImageReader.OnImageAvailableListener mOnImageAvailableListener
+            = new ImageReader.OnImageAvailableListener() {
+        @Override
+        public void onImageAvailable(ImageReader reader) {
+            Toast.makeText(mActivity,"camera2 ok",Toast.LENGTH_SHORT).show();
+            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+            CameraV2GLSurfaceView.shouldTakePic = true;
+        }
+    };
 
     /**
      * 比较 两个 size

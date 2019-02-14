@@ -1,5 +1,8 @@
 package cn.tongue.tonguecamera.ui;
 
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.support.constraint.ConstraintLayout;
@@ -8,6 +11,11 @@ import android.util.Size;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.Toast;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -27,6 +35,7 @@ public class CameraSurfaceViewActivity extends BaseActivity {
     @BindView(R.id.frame_layout)
     FrameLayout frameLayout;
     private CameraV2 mCamera;
+    private CameraV2GLSurfaceView mCameraV2GLSurfaceView;
 
     @Override
     protected int getLayoutId() {
@@ -36,7 +45,7 @@ public class CameraSurfaceViewActivity extends BaseActivity {
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void initView() {
-        CameraV2GLSurfaceView mCameraV2GLSurfaceView = new CameraV2GLSurfaceView(this);
+        mCameraV2GLSurfaceView = new CameraV2GLSurfaceView(this);
         DisplayMetrics dm = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);
         mCamera = new CameraV2(this);
@@ -52,12 +61,35 @@ public class CameraSurfaceViewActivity extends BaseActivity {
         lp.height = size.getWidth();
         mCameraV2GLSurfaceView.setLayoutParams(lp);
         frameLayout.addView(mCameraV2GLSurfaceView);
+
+//        mCamera.setGetBitmapListerent(new CameraV2.GetBitmapListerent() {
+//            @Override
+//            public void onGetBitmap() {
+//                Drawable bit = mCameraV2GLSurfaceView.getBackground();
+//                BitmapDrawable bitmap = (BitmapDrawable) bit;
+//                Bitmap bitm = bitmap.getBitmap();
+//                if(bit!=null){
+//                    Toast.makeText(CameraSurfaceViewActivity.this,"获取bitmap 成功",Toast.LENGTH_SHORT).show();
+//                    try {
+//                        File mFile = new File(getExternalFilesDir(null), "pic1.jpg");
+//                        FileOutputStream fos = new FileOutputStream(mFile);
+//                        bitm.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+//                        fos.flush();
+//                        fos.close();
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//
+//            }
+//        });
     }
 
     @Override
     protected void initData() {
 
     }
+
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @OnClick({R.id.iv_back, R.id.img_camera})
@@ -73,6 +105,8 @@ public class CameraSurfaceViewActivity extends BaseActivity {
                 break;
         }
     }
+
+
 
     @Override
     protected void onResume() {
