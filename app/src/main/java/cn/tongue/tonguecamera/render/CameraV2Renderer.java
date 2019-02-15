@@ -23,6 +23,7 @@ import java.nio.IntBuffer;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import cn.tongue.tonguecamera.util.BitmapRotating;
 import cn.tongue.tonguecamera.util.CameraV2;
 import cn.tongue.tonguecamera.util.FilterEngine;
 import cn.tongue.tonguecamera.util.Utils;
@@ -135,7 +136,6 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
             mDataBuffer.position(0);
             glEnableVertexAttribArray(aPositionLocation);
             glVertexAttribPointer(aPositionLocation, 2, GL_FLOAT, false, 16, mDataBuffer);
-
             mDataBuffer.position(2);
             glEnableVertexAttribArray(aTextureCoordLocation);
             glVertexAttribPointer(aTextureCoordLocation, 2, GL_FLOAT, false, 16, mDataBuffer);
@@ -174,7 +174,7 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
             inBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.RGB_565);
             //为了图像能小一点，使用了RGB_565而不是ARGB_8888
             inBitmap.copyPixelsFromBuffer(buffer);
-//            inBitmap = Bitmap.createBitmap(bt, w, h, Bitmap.Config.RGB_565);
+            inBitmap = Bitmap.createBitmap(bt, w, h, Bitmap.Config.RGB_565);
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             inBitmap.compress(Bitmap.CompressFormat.JPEG, 90, bos);
             byte[] bitmapData = bos.toByteArray();
@@ -189,10 +189,14 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
                 }
                 fis.close();
                 fos.close();
-                inBitmap.recycle();
+
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
+                //旋转角度
+//                int rotate = BitmapRotating.readPictureDegree(mFile.getPath());
+//                BitmapRotating.rotaingImageView(rotate,inBitmap);
+                inBitmap.recycle();
 //                unbindfbo();
             }
         }
