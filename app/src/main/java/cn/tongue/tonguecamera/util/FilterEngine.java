@@ -35,6 +35,7 @@ import static android.opengl.GLES20.glVertexAttribPointer;
 
 /**
  * 滤镜 工具
+ * 参考url ： [https://blog.csdn.net/lb377463323/article/details/78054892]
  *
  * @date 2019年2月12日 14:10:07
  * @author ymc

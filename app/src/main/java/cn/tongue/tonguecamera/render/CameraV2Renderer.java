@@ -66,7 +66,6 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
     private int mOESTextureId = -1;
     private SurfaceTexture mSurfaceTexture;
     private float[] transformMatrix = new float[16];
-    private FilterEngine mFilterEngine;
     private FloatBuffer mDataBuffer;
     private int mShaderProgram = -1;
     private int aPositionLocation = -1;
@@ -88,7 +87,7 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         mOESTextureId = Utils.createOESTextureObject();
-        mFilterEngine = new FilterEngine(mOESTextureId, mContext);
+        FilterEngine mFilterEngine = new FilterEngine(mOESTextureId, mContext);
         mDataBuffer = mFilterEngine.getBuffer();
         mShaderProgram = mFilterEngine.getShaderProgram();
         glGenFramebuffers(1, mFBOIds, 0);

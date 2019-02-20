@@ -61,7 +61,6 @@ public class CameraSurfaceViewActivity extends BaseActivity {
 
     }
 
-
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @OnClick({R.id.iv_back, R.id.img_camera})
     public void onClick(View view) {
@@ -76,8 +75,6 @@ public class CameraSurfaceViewActivity extends BaseActivity {
                 break;
         }
     }
-
-
 
     @Override
     protected void onResume() {
