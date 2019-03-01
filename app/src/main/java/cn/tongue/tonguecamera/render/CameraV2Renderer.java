@@ -170,15 +170,15 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
                 }
             }
             Bitmap inBitmap = null;
-            inBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.RGB_565);
+            inBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
             //为了图像能小一点，使用了RGB_565而不是ARGB_8888
             inBitmap.copyPixelsFromBuffer(buffer);
-            inBitmap = Bitmap.createBitmap(bt, w, h, Bitmap.Config.RGB_565);
+            inBitmap = Bitmap.createBitmap(bt, w, h, Bitmap.Config.ARGB_8888);
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            inBitmap.compress(Bitmap.CompressFormat.JPEG, 90, bos);
+            inBitmap.compress(Bitmap.CompressFormat.PNG, 90, bos);
             byte[] bitmapData = bos.toByteArray();
             ByteArrayInputStream fis = new ByteArrayInputStream(bitmapData);
-            File mFile = new File(mContext.getExternalFilesDir(null), "pic1.jpg");
+            File mFile = new File(mContext.getExternalFilesDir(null), "pic1.png");
             try {
                 FileOutputStream fos = new FileOutputStream(mFile);
                 byte[] buf = new byte[1024];

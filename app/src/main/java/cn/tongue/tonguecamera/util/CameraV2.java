@@ -149,7 +149,7 @@ public class CameraV2 {
      */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public Size setUpCameraOutputs(int width, int height) {
-        mFile = new File(mActivity.getExternalFilesDir(null), "pic.jpg");
+        mFile = new File(mActivity.getExternalFilesDir(null), "pic.png");
         CameraManager manager = (CameraManager) mActivity.getSystemService(Context.CAMERA_SERVICE);
         try {
             for (String cameraId : manager.getCameraIdList()) {
