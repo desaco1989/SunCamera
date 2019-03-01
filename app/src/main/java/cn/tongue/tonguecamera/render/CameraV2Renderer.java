@@ -152,6 +152,7 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
                 false, transformMatrix, 0);
 
         if (mDataBuffer != null) {
+
             //顶点坐标从位置0开始读取
             mDataBuffer.position(0);
             glEnableVertexAttribArray(aPositionLocation);
