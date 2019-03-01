@@ -322,6 +322,9 @@ public class CameraV2 {
         mSurfaceTexture = surfaceTexture;
     }
 
+    /**
+     * 创建相机 并打开预览
+     */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void createCameraPreviewSession() {
         mSurfaceTexture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());

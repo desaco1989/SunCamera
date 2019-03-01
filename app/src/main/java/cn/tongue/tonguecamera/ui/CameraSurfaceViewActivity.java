@@ -4,6 +4,7 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.support.constraint.ConstraintLayout;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.Size;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -25,6 +26,7 @@ import cn.tongue.tonguecamera.view.CameraV2GLSurfaceView;
  */
 
 public class CameraSurfaceViewActivity extends BaseActivity {
+    private static final String TAG = "CameraSVActivity";
     @BindView(R.id.frame_layout)
     FrameLayout frameLayout;
     private CameraV2 mCamera;
@@ -44,10 +46,12 @@ public class CameraSurfaceViewActivity extends BaseActivity {
         mCamera = new CameraV2(this);
         Size size = mCamera.setUpCameraOutputs(dm.widthPixels, dm.heightPixels);
         if (!mCamera.openCamera()) {
+            Log.e(TAG, "mCamera openCamera err");
             return;
         }
         mCameraV2GLSurfaceView.init(mCamera, false,
                 CameraSurfaceViewActivity.this);
+        // 将 surfaceview 添加到布局中
         ConstraintLayout.LayoutParams lp = new ConstraintLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         lp.width = size.getHeight();

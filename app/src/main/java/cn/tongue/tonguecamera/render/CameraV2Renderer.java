@@ -51,8 +51,8 @@ import static android.opengl.GLES20.glViewport;
  * camera render
  * 参考url ： [https://blog.csdn.net/lb377463323/article/details/78054892]
  *
- * @date 2019年2月12日 13:39:55
  * @author ymc
+ * @date 2019年2月12日 13:39:55
  */
 
 public class CameraV2Renderer implements GLSurfaceView.Renderer {
@@ -66,6 +66,9 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
     private int mOESTextureId = -1;
     private SurfaceTexture mSurfaceTexture;
     private float[] transformMatrix = new float[16];
+    /**
+     * 存放顶点的Color数组
+     */
     private FloatBuffer mDataBuffer;
     private int mShaderProgram = -1;
     private int aPositionLocation = -1;
@@ -84,6 +87,12 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
         bIsPreviewStarted = isPreviewStarted;
     }
 
+    /**
+     * GLSurfaceView 创建
+     *
+     * @param gl GL10
+     * @param config EGLConfig
+     */
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         mOESTextureId = Utils.createOESTextureObject();
@@ -92,15 +101,19 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
         mShaderProgram = mFilterEngine.getShaderProgram();
         glGenFramebuffers(1, mFBOIds, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, mFBOIds[0]);
-        Log.i(TAG, "onSurfaceCreated: mFBOId: " + mFBOIds[0]);
     }
 
+    /**
+     * GLSurfaceView 改变
+     * @param gl GL10
+     * @param width 宽度
+     * @param height 长度
+     */
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         glViewport(0, 0, width, height);
         surfaceWidth = width;
         surfaceHeight = height;
-        Log.i(TAG, "onSurfaceChanged: " + width + ", " + height);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -108,40 +121,52 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
     public void onDrawFrame(GL10 gl) {
         Long t1 = System.currentTimeMillis();
         if (mSurfaceTexture != null) {
+            //更新纹理图像
             mSurfaceTexture.updateTexImage();
+            //获取外部纹理的矩阵，用来确定纹理的采样位置，没有此矩阵可能导致图像翻转等问题
             mSurfaceTexture.getTransformMatrix(transformMatrix);
         }
 
         if (!bIsPreviewStarted) {
+            // 创建 SurfaceTexture
             bIsPreviewStarted = initSurfaceTexture();
             bIsPreviewStarted = true;
             return;
         }
         //glClear(GL_COLOR_BUFFER_BIT);
-        glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
+        //获取Shader中定义的变量在program中的位置
         aPositionLocation = glGetAttribLocation(mShaderProgram, FilterEngine.POSITION_ATTRIBUTE);
         aTextureCoordLocation = glGetAttribLocation(mShaderProgram, FilterEngine.TEXTURE_COORD_ATTRIBUTE);
         uTextureMatrixLocation = glGetUniformLocation(mShaderProgram, FilterEngine.TEXTURE_MATRIX_UNIFORM);
         uTextureSamplerLocation = glGetUniformLocation(mShaderProgram, FilterEngine.TEXTURE_SAMPLER_UNIFORM);
-
+        // 激活纹理单位
         glActiveTexture(GL_TEXTURE_EXTERNAL_OES);
+        // 绑定外部纹理到纹理单元0
         glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mOESTextureId);
+        //将此纹理单元床位片段着色器的uTextureSampler外部纹理采样器
         glUniform1i(uTextureSamplerLocation, 0);
-        glUniformMatrix4fv(uTextureMatrixLocation, 1, false, transformMatrix, 0);
+        //将纹理矩阵传给片段着色器
+        glUniformMatrix4fv(uTextureMatrixLocation, 1,
+                false, transformMatrix, 0);
 
-        // 根据 标识，如果需要截图，则进行截图操作
         if (mDataBuffer != null) {
+            //顶点坐标从位置0开始读取
             mDataBuffer.position(0);
             glEnableVertexAttribArray(aPositionLocation);
-            glVertexAttribPointer(aPositionLocation, 2, GL_FLOAT, false, 16, mDataBuffer);
+            glVertexAttribPointer(aPositionLocation, 2, GL_FLOAT,
+                    false, 16, mDataBuffer);
+            //纹理坐标从位置2开始读取
             mDataBuffer.position(2);
             glEnableVertexAttribArray(aTextureCoordLocation);
-            glVertexAttribPointer(aTextureCoordLocation, 2, GL_FLOAT, false, 16, mDataBuffer);
+            glVertexAttribPointer(aTextureCoordLocation, 2, GL_FLOAT,
+                    false, 16, mDataBuffer);
         }
 
         //glDrawElements(GL_TRIANGLE_FAN, 6,GL_UNSIGNED_INT, 0);
         //glDrawArrays(GL_TRIANGLE_FAN, 0 , 6);
+        //绘制两个三角形（6个顶点）
         glDrawArrays(GL_TRIANGLES, 0, 6);
         //glDrawArrays(GL_TRIANGLES, 3, 3);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -169,7 +194,7 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
                     bt[(h - i - 1) * w + j] = pix1;
                 }
             }
-            Bitmap inBitmap = null;
+            Bitmap inBitmap;
             inBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
             //为了图像能小一点，使用了RGB_565而不是ARGB_8888
             inBitmap.copyPixelsFromBuffer(buffer);
@@ -205,18 +230,21 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public boolean initSurfaceTexture() {
+    private boolean initSurfaceTexture() {
         if (mCamera == null || mCameraV2GLSurfaceView == null) {
             Log.i(TAG, "mCamera or mGLSurfaceView is null!");
             return false;
         }
+        // 根据 oesId 创建 SurfaceTexture
         mSurfaceTexture = new SurfaceTexture(mOESTextureId);
         mSurfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
             @Override
             public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+                // 每获取到一帧数据时请求OpenGL ES进行渲染
                 mCameraV2GLSurfaceView.requestRender();
             }
         });
+        //讲此SurfaceTexture作为相机预览输出 （相互绑定）
         mCamera.setPreviewTexture(mSurfaceTexture);
         mCamera.createCameraPreviewSession();
         return true;
@@ -225,7 +253,7 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
     /**
      * 改变截图时候界面卡顿的现象
      * 参考url ： [https://blog.csdn.net/SXH_Android/article/details/78835966]
-     *
+     * <p>
      * 问题：加上后确实没有卡顿现象 但是截图会是 黑屏
      */
     private void bindfbo() {
@@ -234,7 +262,7 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
         GLES20.glGenTextures(1, fTexture, 0);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, fTexture[0]);
         GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA,
-                surfaceWidth, surfaceHeight,0,
+                surfaceWidth, surfaceHeight, 0,
                 GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
 
         GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
@@ -243,11 +271,11 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
         GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
 
         GLES20.glBindFramebuffer(GL_FRAMEBUFFER, fFrame[0]);
-        GLES20.glFramebufferTexture2D(GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0,GLES20.GL_TEXTURE_2D, fTexture[0], 0);
+        GLES20.glFramebufferTexture2D(GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, fTexture[0], 0);
 
-        int status= GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER);
-        if(status !=GLES20.GL_FRAMEBUFFER_COMPLETE) {
-            throw new RuntimeException("status:"+status+", hex:"+Integer.toHexString(status));
+        int status = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER);
+        if (status != GLES20.GL_FRAMEBUFFER_COMPLETE) {
+            throw new RuntimeException("status:" + status + ", hex:" + Integer.toHexString(status));
         }
     }
 
