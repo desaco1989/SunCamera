@@ -5,6 +5,5 @@ varying vec2 vTextureCoord;
 void main()
 {
   vec4 vCameraColor = texture2D(uTextureSampler, vTextureCoord);
-  float fGrayColor = (0.3*vCameraColor.r + 0.6*vCameraColor.g + 0.1*vCameraColor.b);
-  gl_FragColor = vec4(fGrayColor, fGrayColor, fGrayColor, 1.0);
+  gl_FragColor = vCameraColor;
 }
