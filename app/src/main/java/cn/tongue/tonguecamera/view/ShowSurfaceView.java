@@ -2,15 +2,12 @@ package cn.tongue.tonguecamera.view;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-
-import cn.tongue.tonguecamera.R;
 
 /**
  * @packageName: cn.tongue.tonguecamera.view
@@ -20,7 +17,7 @@ import cn.tongue.tonguecamera.R;
  * @QQ:745612618
  */
 
-public class ShowSurfaceView  extends SurfaceView implements SurfaceHolder.Callback, Runnable {
+public class ShowSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
     private SurfaceHolder mSurfaceHolder;
     //绘图的Canvas
     private Canvas mCanvas;
@@ -28,6 +25,7 @@ public class ShowSurfaceView  extends SurfaceView implements SurfaceHolder.Callb
     private boolean mIsDrawing;
     private Bitmap bitmap;
     private Paint mPaint;
+
     public ShowSurfaceView(Context context) {
         this(context, null);
     }
@@ -69,7 +67,7 @@ public class ShowSurfaceView  extends SurfaceView implements SurfaceHolder.Callb
 
     @Override
     public void run() {
-        while (mIsDrawing){
+        while (mIsDrawing) {
             drawSomething();
         }
     }
@@ -80,14 +78,14 @@ public class ShowSurfaceView  extends SurfaceView implements SurfaceHolder.Callb
             //获得canvas对象
             mCanvas = mSurfaceHolder.lockCanvas();
 //            Bitmap bitmap1= BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
-            if(bitmap != null){
-                mCanvas.drawBitmap(bitmap,0,0,mPaint);
+            if (bitmap != null) {
+                mCanvas.drawBitmap(bitmap, 0, 0, mPaint);
             }
             //绘图
-        }catch (Exception e){
+        } catch (Exception e) {
 
-        }finally {
-            if (mCanvas != null){
+        } finally {
+            if (mCanvas != null) {
                 //释放canvas对象并提交画布
                 mSurfaceHolder.unlockCanvasAndPost(mCanvas);
             }
