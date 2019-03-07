@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Matrix;
@@ -143,6 +144,85 @@ public class BitmapUtils {
         paint.setColorFilter(f);
         c.drawBitmap(bmpOriginal, 0, 0, paint);
         return bmpGrayscale;
+    }
+
+    public static Bitmap replaceBitmapColor(Bitmap oldBitmap, int oldColor, int newColor) {
+        Bitmap mBitmap = oldBitmap.copy(Bitmap.Config.ARGB_8888, true);
+        int mBitmapWidth = mBitmap.getWidth();
+        int mBitmapHeight = mBitmap.getHeight();
+        for (int i = 0; i < mBitmapHeight; i++) {
+            for (int j = 0; j < mBitmapWidth; j++) {
+                int color = mBitmap.getPixel(j, i);
+                if (color == oldColor) {
+                    //将被替换色替换为需要替换成的颜色附近的值，都替换为相同的颜色略显单调
+                    mBitmap.setPixel(j, i, (int) (newColor + Math.random() * 100000));
+                }
+            }
+        }
+        return mBitmap;
+    }
+
+    /**
+     * 将图片转换为负片
+     * @param bitmap 原来图片
+     * @return 新图片
+     */
+    public static Bitmap ImgaeToNegative(Bitmap bitmap){
+        //其实我们获得宽和高就是图片像素的宽和高
+        //它们的乘积就是总共一张图片拥有的像素点数
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+
+        Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+
+        int[] oldPx = new int[width*height];//用来存储旧的色素点的数组
+        int[] newPx = new int[width*height];//用来存储新的像素点的数组
+        int color;//用来存储原来颜色值
+        int r,g,b,a;//存储颜色的四个分量：红，绿，蓝，透明度
+
+        //该方法用来将图片的像素写入到oldPx中，我们这样子设置，就会获取全部的像素点
+        //第一个参数为写入的数组，第二个参数为读取第一个的像素点的偏移量，一般设置为0
+        //第三个参数为写入时，多少个像素点作为一行,第三个和第四个参数为读取的起点坐标
+        //第五个参数表示读取的长度，第六个表示读取的高度
+        bitmap.getPixels(oldPx, 0, width, 0, 0, width, height);
+        //下面用循环来处理每一个像素点
+        for(int i =0;i<width*height;i++){
+
+            color = oldPx[i];//获取一个原来的像素点
+            r = Color.red(color);//获取红色分量，下同
+            g = Color.green(color);
+            b = Color.blue(color);
+            a = Color.alpha(color);
+
+            //下面计算生成新的颜色分量
+            r = 255 -r;
+            g = 255 - g;
+            b = 255 - b;
+
+            //下面主要保证r g b 的值都必须在0~255之内
+            if(r>255){
+                r = 255;
+            }else if(r<0){
+                r = 0;
+            }
+            if(g>255){
+                g = 255;
+            }else if(g<0){
+                g = 0;
+            }
+            if(b>255){
+                b = 255;
+            }else if(b<0){
+                b = 0;
+            }
+            //下面合成新的像素点，并添加到newPx中
+            color = Color.argb(a, r, g, b);
+            newPx[i] = color;
+        }
+        //然后重要的一步，为bmp设置新颜色了,该方法中的参数意义与getPixels中的一样
+        //无非是将newPx写入到bmp中
+        bmp.setPixels(newPx, 0, width, 0, 0, width, height);
+        return bmp;
     }
 
     /**
@@ -368,6 +448,24 @@ public class BitmapUtils {
         mCanvas.drawBitmap(alphaBitmap, 0, 0, mPaint);
 
         return mAlphaBitmap;
+    }
+
+
+    /**
+     * 旋转 bitmap
+     * @param bmp bitmap
+     * @return 旋转后的 bitmap
+     */
+    public static Bitmap rotateMyBitmap(Bitmap bmp){
+        //*****旋转一下
+        Matrix matrix = new Matrix();
+        matrix.postRotate(90);
+
+        Bitmap bitmap = Bitmap.createBitmap(bmp.getWidth(), bmp.getHeight(), Bitmap.Config.ARGB_8888);
+
+        Bitmap nbmp2 = Bitmap.createBitmap(bmp, 0,0, bmp.getWidth(),  bmp.getHeight(), matrix, true);
+
+        return nbmp2;
     }
 
     /**

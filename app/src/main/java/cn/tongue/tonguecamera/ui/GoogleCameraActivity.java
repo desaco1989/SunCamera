@@ -234,7 +234,14 @@ public class GoogleCameraActivity extends BaseActivity {
             = new ImageReader.OnImageAvailableListener() {
         @Override
         public void onImageAvailable(ImageReader reader) {
-            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+            Log.e(TAG, "onImageAvailable:-------------------");
+            Image image = reader.acquireLatestImage();
+            //我们可以将这帧数据转成字节数组，类似于Camera1的PreviewCallback回调的预览帧数据
+            ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+            byte[] data = new byte[buffer.remaining()];
+            buffer.get(data);
+            image.close();
+//            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
         }
 
     };
@@ -404,7 +411,7 @@ public class GoogleCameraActivity extends BaseActivity {
                 mImageReader = ImageReader.newInstance(largest.getWidth(),
                         largest.getHeight(), ImageFormat.JPEG, 2);
                 mImageReader.setOnImageAvailableListener(
-                        mOnImageAvailableListener, mBackgroundHandler);
+                        mOnImageAvailableListener, null);
 
                 //了解我们是否需要交换尺寸以获得相对于传感器的预览尺寸
                 int displayRotation = getWindowManager().getDefaultDisplay().getRotation();

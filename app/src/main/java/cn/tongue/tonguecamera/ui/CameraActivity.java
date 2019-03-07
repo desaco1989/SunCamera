@@ -3,6 +3,10 @@ package cn.tongue.tonguecamera.ui;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.ImageFormat;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.Environment;
 import android.util.DisplayMetrics;
@@ -14,6 +18,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 
@@ -24,6 +29,7 @@ import cn.tongue.tonguecamera.base.BaseActivity;
 import cn.tongue.tonguecamera.util.AppConstant;
 import cn.tongue.tonguecamera.util.BitmapUtils;
 import cn.tongue.tonguecamera.util.CameraUtil;
+import cn.tongue.tonguecamera.view.ShowSurfaceView;
 
 /**
  * 拍照界面
@@ -34,6 +40,8 @@ import cn.tongue.tonguecamera.util.CameraUtil;
 
 public class CameraActivity extends BaseActivity implements SurfaceHolder.Callback {
     private static final String TAG = "CameraActivity";
+    @BindView(R.id.surfaceView2)
+    ShowSurfaceView svShow;
     @BindView(R.id.surfaceView)
     SurfaceView svContent;
     @BindView(R.id.img_camera)
@@ -93,6 +101,7 @@ public class CameraActivity extends BaseActivity implements SurfaceHolder.Callba
         DisplayMetrics dm = getResources().getDisplayMetrics();
         screenWidth = dm.widthPixels;
         screenHeight = dm.heightPixels;
+
     }
 
     @Override
@@ -256,6 +265,23 @@ public class CameraActivity extends BaseActivity implements SurfaceHolder.Callba
         try {
             setupCamera(camera);
             camera.setPreviewDisplay(holder);
+            mCamera.setPreviewCallback(new Camera.PreviewCallback() {
+                @Override
+                public void onPreviewFrame(byte[] data, Camera camera) {
+                    Camera.Size size = camera.getParameters().getPreviewSize();
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    try{
+                        // YUV转为RGB
+                        YuvImage image = new YuvImage(data, ImageFormat.NV21, size.width, size.height, null);
+                        image.compressToJpeg(new Rect(0, 0, size.width/2, size.height/2), 20, stream);
+                        Bitmap bmp = BitmapFactory.decodeByteArray(stream.toByteArray(), 0, stream.size());
+                        svShow.setBitmap(BitmapUtils.rotateMyBitmap(BitmapUtils.ImgaeToNegative(bmp)));
+                        stream.close();
+                    }catch(Exception ex){
+                        Log.e("Sys","Error:"+ex.getMessage());
+                    }
+                }
+            });
             cameraInstance.setCameraDisplayOrientation(this, mCameraId, camera);
             camera.startPreview();
             isView = true;
@@ -288,9 +314,9 @@ public class CameraActivity extends BaseActivity implements SurfaceHolder.Callba
 //        picHeight = (screenWidth * pictrueSize.width) / pictrueSize.height;
         picWidth = pictrueSize.width;
         picHeight = pictrueSize.height;
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(screenWidth,
-                (screenWidth * pictrueSize.width) / pictrueSize.height);
-        svContent.setLayoutParams(params);
+//        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(screenWidth,
+//                (screenWidth * pictrueSize.width) / pictrueSize.height);
+//        svContent.setLayoutParams(params);
     }
 
     /**
