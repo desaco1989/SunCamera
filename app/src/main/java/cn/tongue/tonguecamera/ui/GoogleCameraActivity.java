@@ -168,6 +168,20 @@ public class GoogleCameraActivity extends BaseActivity {
         mFile = new File(getExternalFilesDir(null), "pic.jpg");
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @Override
+    public void onResume() {
+        super.onResume();
+        startBackgroundThread();
+        // 存在关联则打开相机，没有则绑定事件
+        if (mTextureView.isAvailable()) {
+            openCamera(mTextureView.getWidth(), mTextureView.getHeight());
+        } else {
+            mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
+        }
+    }
+
+
     /**
      * SurfaceTextureListener  监听事件
      */
@@ -356,19 +370,6 @@ public class GoogleCameraActivity extends BaseActivity {
         } else {
             Log.e(TAG, "Couldn't find any suitable preview size");
             return choices[0];
-        }
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    @Override
-    public void onResume() {
-        super.onResume();
-        startBackgroundThread();
-        // 存在关联则打开相机，没有则绑定事件
-        if (mTextureView.isAvailable()) {
-            openCamera(mTextureView.getWidth(), mTextureView.getHeight());
-        } else {
-            mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
         }
     }
 
