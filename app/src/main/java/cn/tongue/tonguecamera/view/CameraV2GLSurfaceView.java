@@ -22,6 +22,7 @@ public class CameraV2GLSurfaceView extends GLSurfaceView {
         CameraV2Renderer mCameraV2Renderer = new CameraV2Renderer();
         mCameraV2Renderer.init(this, camera, isPreviewStarted, context);
         setRenderer(mCameraV2Renderer);
+        setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
 
     public CameraV2GLSurfaceView(Context context) {

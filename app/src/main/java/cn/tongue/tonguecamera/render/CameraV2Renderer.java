@@ -164,14 +164,12 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
             glVertexAttribPointer(aTextureCoordLocation, 2, GL_FLOAT,
                     false, 16, mDataBuffer);
         }
-
         //glDrawElements(GL_TRIANGLE_FAN, 6,GL_UNSIGNED_INT, 0);
         //glDrawArrays(GL_TRIANGLE_FAN, 0 , 6);
         //绘制两个三角形（6个顶点）
         glDrawArrays(GL_TRIANGLES, 0, 6);
         //glDrawArrays(GL_TRIANGLES, 3, 3);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
         /**
          * 根据标识 是否截图
          * 参考url： [http://hounychang.github.io/2015/05/13/%E5%AF%B9GLSurfaceView%E6%88%AA%E5%9B%BE/]

@@ -254,6 +254,7 @@ public class GoogleCameraActivity extends BaseActivity {
             ByteBuffer buffer = image.getPlanes()[0].getBuffer();
             byte[] data = new byte[buffer.remaining()];
             buffer.get(data);
+            Log.d(TAG, "data size = " + data.length);
             image.close();
 //            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
         }
@@ -407,12 +408,12 @@ public class GoogleCameraActivity extends BaseActivity {
                 }
                 // 静态图像捕获，选择最大可用大小。
                 Size largest = Collections.max(
-                        Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
+                        Arrays.asList(map.getOutputSizes(ImageFormat.YUV_420_888)),
                         new CompareSizesByArea());
                 mImageReader = ImageReader.newInstance(largest.getWidth(),
-                        largest.getHeight(), ImageFormat.JPEG, 2);
+                        largest.getHeight(), ImageFormat.YUV_420_888, 2);
                 mImageReader.setOnImageAvailableListener(
-                        mOnImageAvailableListener, null);
+                        mOnImageAvailableListener, mBackgroundHandler);
 
                 //了解我们是否需要交换尺寸以获得相对于传感器的预览尺寸
                 int displayRotation = getWindowManager().getDefaultDisplay().getRotation();
@@ -570,6 +571,8 @@ public class GoogleCameraActivity extends BaseActivity {
             //使用Surface设置CaptureRequest.Builder
             mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             mPreviewRequestBuilder.addTarget(surface);
+            //添加这句话 可以在 mImageReader 监听回调中持续获取 预览图片
+            mPreviewRequestBuilder.addTarget(mImageReader.getSurface());
             mCameraDevice.createCaptureSession(Arrays.asList(surface, mImageReader.getSurface()),
                     new CameraCaptureSession.StateCallback() {
 
