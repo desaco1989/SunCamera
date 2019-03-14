@@ -77,6 +77,7 @@ public class FilterEngine {
     public static final String TEXTURE_COORD_ATTRIBUTE = "aTextureCoordinate";
     public static final String TEXTURE_MATRIX_UNIFORM = "uTextureMatrix";
     public static final String TEXTURE_SAMPLER_UNIFORM = "uTextureSampler";
+    public static final String COLOR_TYPE = "vColorType";
 
     /**
      * 构造方法

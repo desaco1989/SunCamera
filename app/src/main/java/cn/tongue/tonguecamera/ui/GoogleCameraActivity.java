@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -22,6 +23,7 @@ import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
@@ -34,6 +36,7 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -50,7 +53,10 @@ import butterknife.BindView;
 import butterknife.OnClick;
 import cn.tongue.tonguecamera.R;
 import cn.tongue.tonguecamera.base.BaseActivity;
+import cn.tongue.tonguecamera.util.BitmapUtils;
+import cn.tongue.tonguecamera.util.Camera2Util;
 import cn.tongue.tonguecamera.view.AutoFitTextureView;
+import cn.tongue.tonguecamera.view.ShowSurfaceView;
 
 /**
  * google 拍照 demo
@@ -63,9 +69,14 @@ import cn.tongue.tonguecamera.view.AutoFitTextureView;
 
 public class GoogleCameraActivity extends BaseActivity {
     private static final String TAG = "GoogleCameraActivity";
+    /**
+     * 这里为了测试 相机将画布设置为 1像素，如果 想要看原版效果，
+     * 则隐藏 ShowSurfaceView ，将AutoFitTextureView设置充满
+     */
     @BindView(R.id.textureView_g)
     AutoFitTextureView mTextureView;
-
+    @BindView(R.id.surfaceView2)
+    ShowSurfaceView svShow;
     /**
      * Conversion from screen rotation to JPEG orientation.
      */
@@ -248,17 +259,21 @@ public class GoogleCameraActivity extends BaseActivity {
             = new ImageReader.OnImageAvailableListener() {
         @Override
         public void onImageAvailable(ImageReader reader) {
-            Log.e(TAG, "onImageAvailable:-------------------");
             Image image = reader.acquireLatestImage();
-            //我们可以将这帧数据转成字节数组，类似于Camera1的PreviewCallback回调的预览帧数据
-            ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-            byte[] data = new byte[buffer.remaining()];
-            buffer.get(data);
-            Log.d(TAG, "data size = " + data.length);
-            image.close();
-//            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
-        }
+            if (image != null) {
+                int imageWidth = image.getWidth();
+                int imageHeight = image.getHeight();
 
+                byte[] data68 = Camera2Util.getBytesFromImageAsType(image, 2);
+                int rgb[] = Camera2Util.decodeYUV420SP(data68, imageWidth, imageHeight);
+                Bitmap bitmap2 = Bitmap.createBitmap(rgb, 0, imageWidth,
+                        imageWidth, imageHeight,
+                        Bitmap.Config.ARGB_4444);
+                svShow.setBitmap(BitmapUtils.rotateMyBitmap(bitmap2));
+                image.close();
+//            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+            }
+        }
     };
 
     /**
@@ -410,8 +425,7 @@ public class GoogleCameraActivity extends BaseActivity {
                 Size largest = Collections.max(
                         Arrays.asList(map.getOutputSizes(ImageFormat.YUV_420_888)),
                         new CompareSizesByArea());
-                mImageReader = ImageReader.newInstance(largest.getWidth(),
-                        largest.getHeight(), ImageFormat.YUV_420_888, 2);
+                mImageReader = ImageReader.newInstance(720, 960, ImageFormat.YUV_420_888, 2);
                 mImageReader.setOnImageAvailableListener(
                         mOnImageAvailableListener, mBackgroundHandler);
 
@@ -485,7 +499,7 @@ public class GoogleCameraActivity extends BaseActivity {
     /**
      * 打开相机
      *
-     * @param width 宽度
+     * @param width  宽度
      * @param height 长度
      */
     @RequiresApi(api = Build.VERSION_CODES.M)

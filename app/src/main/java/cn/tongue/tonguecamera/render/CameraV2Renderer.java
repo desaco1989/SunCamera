@@ -7,14 +7,12 @@ import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
-import android.os.Environment;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.FloatBuffer;
@@ -23,7 +21,6 @@ import java.nio.IntBuffer;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import cn.tongue.tonguecamera.util.BitmapRotating;
 import cn.tongue.tonguecamera.util.CameraV2;
 import cn.tongue.tonguecamera.util.FilterEngine;
 import cn.tongue.tonguecamera.util.Utils;
@@ -75,9 +72,12 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
     private int aTextureCoordLocation = -1;
     private int uTextureMatrixLocation = -1;
     private int uTextureSamplerLocation = -1;
+    private int uColorType = -1;
     private int[] mFBOIds = new int[1];
     private int[] fFrame = new int[1];
     private int[] fTexture = new int[1];
+    float[] arrays ={1,1,1};
+    private int hChangeColor = -1;
 
     public void init(CameraV2GLSurfaceView surfaceView, CameraV2 camera,
                      boolean isPreviewStarted, Context context) {
@@ -101,6 +101,8 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
         mShaderProgram = mFilterEngine.getShaderProgram();
         glGenFramebuffers(1, mFBOIds, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, mFBOIds[0]);
+        uColorType = glGetUniformLocation(mShaderProgram, FilterEngine.COLOR_TYPE);
+        hChangeColor = GLES20.glGetUniformLocation(mShaderProgram, "vChangeColor");
     }
 
     /**
@@ -140,13 +142,14 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
         aPositionLocation = glGetAttribLocation(mShaderProgram, FilterEngine.POSITION_ATTRIBUTE);
         aTextureCoordLocation = glGetAttribLocation(mShaderProgram, FilterEngine.TEXTURE_COORD_ATTRIBUTE);
         uTextureMatrixLocation = glGetUniformLocation(mShaderProgram, FilterEngine.TEXTURE_MATRIX_UNIFORM);
-        uTextureSamplerLocation = glGetUniformLocation(mShaderProgram, FilterEngine.TEXTURE_SAMPLER_UNIFORM);
         // 激活纹理单位
         glActiveTexture(GL_TEXTURE_EXTERNAL_OES);
         // 绑定外部纹理到纹理单元0
         glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mOESTextureId);
         //将此纹理单元床位片段着色器的uTextureSampler外部纹理采样器
         glUniform1i(uTextureSamplerLocation, 0);
+        glUniform1i(uColorType,1);
+        GLES20.glUniform3fv(hChangeColor,1,arrays,0);
         //将纹理矩阵传给片段着色器
         glUniformMatrix4fv(uTextureMatrixLocation, 1,
                 false, transformMatrix, 0);

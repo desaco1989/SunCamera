@@ -6,16 +6,30 @@
     android:background="@android:color/black"
     tools:context="cn.tongue.tonguecamera.ui.CameraActivity">
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+    <LinearLayout
+        android:layout_width="1dp"
+        android:layout_alignParentEnd="true"
+        android:layout_height="1dp">
 
         <cn.tongue.tonguecamera.view.AutoFitTextureView
             android:id="@+id/textureView_g"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_width="1dp"
+            android:layout_height="1dp" />
 
-    </FrameLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:orientation="horizontal">
+
+        <cn.tongue.tonguecamera.view.ShowSurfaceView
+            android:id="@+id/surfaceView2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </LinearLayout>
 
     <RelativeLayout
         android:id="@+id/homecamera_bottom_relative2"
