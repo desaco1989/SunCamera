@@ -3,7 +3,8 @@
 
 camera+surfaceview 博客地址：https://www.jianshu.com/p/af39024896ce
 
-https://upload-images.jianshu.io/upload_images/6188347-cd61d9a329522b0a?imageMogr2/auto-orient/
+![image](https://upload-images.jianshu.io/upload_images/6188347-cd61d9a329522b0a?imageMogr2/auto-orient/)
+
 
 camera2 + TextureView   博客地址 ： https://www.jianshu.com/p/c99fd9dfd77f
 
