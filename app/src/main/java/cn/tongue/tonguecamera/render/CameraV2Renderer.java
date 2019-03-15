@@ -76,9 +76,9 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
     private int[] mFBOIds = new int[1];
     private int[] fFrame = new int[1];
     private int[] fTexture = new int[1];
-    float[] arrays1 ={1,1,1};
-    float[] arrays2 ={2,2,2};
-    float[] arrays3 ={3,3,3};
+    float[] arrays1 ={1,2,3};
+    float[] arrays2 ={4,5,6};
+    float[] arrays3 ={7,8,9};
     private int hChangeColor = -1;
     private int hChangeColor2 = -1;
     private int hChangeColor3 = -1;

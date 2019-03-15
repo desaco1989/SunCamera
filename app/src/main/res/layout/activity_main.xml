@@ -10,7 +10,7 @@
         android:id="@+id/btn_camera"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="open camera"
+        android:text="camera1"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -20,7 +20,7 @@
         android:id="@+id/btn_camera2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="open camera2"
+        android:text="Googlecamera2"
         android:layout_marginTop="20dp"
         app:layout_constraintTop_toBottomOf="@+id/btn_camera"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -30,9 +30,19 @@
         android:id="@+id/btn_filter_camera2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="open camera2"
+        android:text="GLcamera2"
         android:layout_marginTop="20dp"
         app:layout_constraintTop_toBottomOf="@+id/btn_camera2"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+    <Button
+        android:id="@+id/btn_look_camera2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="美颜camera2"
+        android:layout_marginBottom="20dp"
+        app:layout_constraintBottom_toTopOf="@+id/btn_camera"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"/>
 
