@@ -51,9 +51,9 @@ public class TextureController implements GLSurfaceView.Renderer {
         };
         v.addView(mGLView);
         v.setVisibility(View.GONE);
-        mEffectFilter=new TextureFilter(mContext.getResources());
-        mShowFilter=new NoFilter(mContext.getResources());
-        mGroupFilter=new GroupFilter(mContext.getResources());
+//        mEffectFilter=new TextureFilter(mContext.getResources());
+//        mShowFilter=new NoFilter(mContext.getResources());
+//        mGroupFilter=new GroupFilter(mContext.getResources());
 
         //设置默认的DateSize，DataSize由AiyaProvider根据数据源的图像宽高进行设置
         mDataSize=new Point(720,1280);

@@ -31,9 +31,9 @@ public class LookCameraActivity extends BaseActivity {
     @Override
     protected void initView() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mRenderer = new Camera2Renderer();
+//            mRenderer = new Camera2Renderer();
         }else{
-            mRenderer = new Camera1Renderer();
+//            mRenderer = new Camera1Renderer();
         }
     }
 

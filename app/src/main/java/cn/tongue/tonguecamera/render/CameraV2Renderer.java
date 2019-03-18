@@ -76,12 +76,14 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
     private int[] mFBOIds = new int[1];
     private int[] fFrame = new int[1];
     private int[] fTexture = new int[1];
-    float[] arrays1 ={1,2,3};
+    float[] arrays1 ={1.0f,2.0f,3.0f,4.0f};
     float[] arrays2 ={4,5,6};
     float[] arrays3 ={7,8,9};
+    int arraysSize = 4;
     private int hChangeColor = -1;
     private int hChangeColor2 = -1;
     private int hChangeColor3 = -1;
+    private int hArraySize = -1;
 
     public void init(CameraV2GLSurfaceView surfaceView, CameraV2 camera,
                      boolean isPreviewStarted, Context context) {
@@ -109,6 +111,7 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
         hChangeColor = GLES20.glGetUniformLocation(mShaderProgram, "vChangeColor");
         hChangeColor2 = GLES20.glGetUniformLocation(mShaderProgram, "vChangeColorB");
         hChangeColor3 = GLES20.glGetUniformLocation(mShaderProgram, "vChangeColorC");
+        hArraySize = GLES20.glGetUniformLocation(mShaderProgram, "vArraysSize");
     }
 
     /**
@@ -148,6 +151,7 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
         aPositionLocation = glGetAttribLocation(mShaderProgram, FilterEngine.POSITION_ATTRIBUTE);
         aTextureCoordLocation = glGetAttribLocation(mShaderProgram, FilterEngine.TEXTURE_COORD_ATTRIBUTE);
         uTextureMatrixLocation = glGetUniformLocation(mShaderProgram, FilterEngine.TEXTURE_MATRIX_UNIFORM);
+
         // 激活纹理单位
         glActiveTexture(GL_TEXTURE_EXTERNAL_OES);
         // 绑定外部纹理到纹理单元0
@@ -155,6 +159,7 @@ public class CameraV2Renderer implements GLSurfaceView.Renderer {
         //将此纹理单元床位片段着色器的uTextureSampler外部纹理采样器
         glUniform1i(uTextureSamplerLocation, 0);
         glUniform1i(uColorType,1);
+        glUniform1i(hArraySize,1);
         GLES20.glUniform3fv(hChangeColor,1, arrays1,0);
         GLES20.glUniform3fv(hChangeColor2,1, arrays2,0);
         GLES20.glUniform3fv(hChangeColor3,1, arrays3,0);
