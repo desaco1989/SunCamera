@@ -228,7 +228,6 @@ public class CameraV2 {
 //                    mTextureView.setAspectRatio(
 //                            mPreviewSize.getHeight(), mPreviewSize.getWidth());
 //                }
-
                 // 检查 远光灯
                 Boolean available = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
                 mFlashSupported = available == null ? false : available;

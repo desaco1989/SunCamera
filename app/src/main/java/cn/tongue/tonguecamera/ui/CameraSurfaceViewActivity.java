@@ -80,10 +80,14 @@ public class CameraSurfaceViewActivity extends BaseActivity {
         }
     }
 
+    // TODO: 2019/4/3 会退到当前界面如何重新启动相机
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onResume() {
-        mCamera.startBackgroundThread();
         super.onResume();
+        mCamera.startBackgroundThread();
+        // 存在关联则打开相机，没有则绑定事件
+//        mCamera.openCamera();
     }
 
     @Override
