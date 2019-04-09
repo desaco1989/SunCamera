@@ -16,12 +16,12 @@ public class LabUtil {
     /**
      * D50 光源下 RGB 转为lab
      *
-     * @param sR r
-     * @param sG g
-     * @param sB b
      * @return lab
      */
-    public static Lab rgbToLabD50(double sR, double sG, double sB) {
+    public static Lab rgbToLabD50(double [] rgbArr) {
+        double sR = rgbArr [0];
+        double sG = rgbArr [1];
+        double sB = rgbArr [2];
         Lab lab = new Lab();
         //double R = ( (sR+0.055)/1.055 )^2.4;
         double r = Math.pow((sR + 0.055) / 1.055, 2.4);
@@ -108,7 +108,11 @@ public class LabUtil {
         return XYZ;
     }
 
-
+    /**
+     * xyz 转为 lab
+     * @param XYZ
+     * @return
+     */
     public static double[] XYZ2Lab(double[] XYZ) {
         double[] Lab = new double[3];
         double X, Y, Z;
@@ -119,29 +123,25 @@ public class LabUtil {
 //        Xn = 95.04;
 //        Yn = 100;
 //        Zn = 108.89;
-
-        Xn = 96.4296;
+        Xn = 96.42;
         Yn = 100;
-        Zn = 82.5106;
+        Zn = 82.51;
         double XXn, YYn, ZZn;
         XXn = X / Xn;
         YYn = Y / Yn;
         ZZn = Z / Zn;
 
         double fx, fy, fz;
-
         if (XXn > 0.008856) {
             fx = Math.pow(XXn, 0.333333);
         } else {
             fx = 7.787 * XXn + 0.137931;
         }
-
         if (YYn > 0.008856) {
             fy = Math.pow(YYn, 0.333333);
         } else {
             fy = 7.787 * YYn + 0.137931;
         }
-
         if (ZZn > 0.008856) {
             fz = Math.pow(ZZn, 0.333333);
         } else {
@@ -150,6 +150,7 @@ public class LabUtil {
         Lab[0] = 116 * fy - 16;
         Lab[1] = 500 * (fx - fy);
         Lab[2] = 200 * (fy - fz);
+
         return Lab;
     }
 
@@ -182,16 +183,18 @@ public class LabUtil {
             sB = Math.pow(((sB + 0.055) / 1.055), 2.4);
         }
 
-        XYZ[0] = 43.6052025 * sR + 38.5081593 * sG + 14.3087414 * sB;
-        XYZ[1] = 22.2491598 * sR + 71.6886060 * sG + 6.0621486 * sB;
-        XYZ[2] = 1.3929122 * sR + 9.7097002 * sG + 71.4185470 * sB;
-
+//        XYZ[0] = 43.6052025 * sR + 38.5081593 * sG + 14.3087414 * sB;
+//        XYZ[1] = 22.2491598 * sR + 71.6886060 * sG + 6.0621486 * sB;
+//        XYZ[2] = 1.3929122 * sR + 9.7097002 * sG + 71.4185470 * sB;
+        XYZ[0] = 41.24 * sR + 35.76 * sG + 18.05 * sB;
+        XYZ[1] = 21.26 * sR + 71.52 * sG + 7.22 * sB;
+        XYZ[2] = 1.93 * sR + 11.92 * sG + 95.05 * sB;
         return XYZ;
     }
 
 
-    public static int[] XYZ2sRGB(double[] XYZ) {
-        int[] sRGB = new int[3];
+    public static double[] XYZ2sRGB(double[] XYZ) {
+        double[] sRGB = new double[3];
         double X, Y, Z;
         double dr = 0,dg = 0,db= 0;
         X = XYZ[0];
@@ -199,9 +202,9 @@ public class LabUtil {
         Z = XYZ[2];
 
         // TODO: 2019/4/3 D65格式暂时没有找到 D50格式
-//        dr = 0.032406 * X - 0.015371 * Y - 0.0049895 * Z;
-//        dg = -0.0096891 * X + 0.018757 * Y + 0.00041914 * Z;
-//        db = 0.00055708 * X - 0.0020401 * Y + 0.01057 * Z;
+        dr = 0.032406 * X - 0.015371 * Y - 0.0049895 * Z;
+        dg = -0.0096891 * X + 0.018757 * Y + 0.00041914 * Z;
+        db = 0.00055708 * X - 0.0020401 * Y + 0.01057 * Z;
 
         if (dr <= 0.00313) {
             dr = dr * 12.92;
@@ -229,9 +232,9 @@ public class LabUtil {
         dg = Math.min(255, dg);
         db = Math.min(255, db);
 
-        sRGB[0] = (int) (dr + 0.5);
-        sRGB[1] = (int) (dg + 0.5);
-        sRGB[2] = (int) (db + 0.5);
+        sRGB[0] = dr + 0.5;
+        sRGB[1] = dg + 0.5;
+        sRGB[2] = db + 0.5;
 
         return sRGB;
     }

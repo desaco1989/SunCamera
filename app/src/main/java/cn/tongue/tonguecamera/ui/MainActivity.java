@@ -70,17 +70,24 @@ public class MainActivity extends BaseActivity {
         requestPermission();
         btn.setText(stringFromJNI());
 
-        double[] xyz = LabUtil.sRGB2XYZ(rgbmap[0]);
-        double[] lab = LabUtil.XYZ2Lab(xyz);
-        Log.e(TAG, Arrays.toString(lab));
     }
 
     @OnClick({R.id.btn_camera, R.id.btn_camera2, R.id.btn_filter_camera2})
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.btn_camera:
-                Intent intent = new Intent(this, CameraActivity.class);
-                startActivityForResult(intent, 0);
+//                Intent intent = new Intent(this, CameraActivity.class);
+//                startActivityForResult(intent, 0);
+                double[] xyz = LabUtil.sRGB2XYZ(rgbmap[0]);
+                double[] lab = LabUtil.XYZ2Lab(xyz);
+
+                double[] xyz2 = LabUtil.Lab2XYZ(labmap[0]);
+                double[] rgb = LabUtil.XYZ2sRGB(xyz2);
+
+                Lab testLab = LabUtil.rgbToLabD50(rgbmap[0]);
+                double[] testRgb = LabUtil.labToRgbD50(testLab);
+
+                Log.e(TAG, Arrays.toString(lab));
                 break;
             case R.id.btn_camera2:
                 Intent intent2 = new Intent(this, GoogleCameraActivity.class);
