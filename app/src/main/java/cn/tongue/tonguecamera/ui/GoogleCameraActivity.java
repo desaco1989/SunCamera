@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -35,9 +36,12 @@ import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
+import android.widget.Toast;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -53,6 +57,7 @@ import butterknife.BindView;
 import butterknife.OnClick;
 import cn.tongue.tonguecamera.R;
 import cn.tongue.tonguecamera.base.BaseActivity;
+import cn.tongue.tonguecamera.util.AppConstant;
 import cn.tongue.tonguecamera.util.BitmapUtils;
 import cn.tongue.tonguecamera.util.Camera2Util;
 import cn.tongue.tonguecamera.view.AutoFitTextureView;
@@ -156,7 +161,6 @@ public class GoogleCameraActivity extends BaseActivity {
     private ImageReader mImageReader;
 
     private File mFile;
-
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
         ORIENTATIONS.append(Surface.ROTATION_90, 0);
@@ -259,20 +263,42 @@ public class GoogleCameraActivity extends BaseActivity {
             = new ImageReader.OnImageAvailableListener() {
         @Override
         public void onImageAvailable(ImageReader reader) {
-            Image image = reader.acquireLatestImage();
-            if (image != null) {
-                int imageWidth = image.getWidth();
-                int imageHeight = image.getHeight();
-
-                byte[] data68 = Camera2Util.getBytesFromImageAsType(image, 2);
-                int rgb[] = Camera2Util.decodeYUV420SP(data68, imageWidth, imageHeight);
-                Bitmap bitmap2 = Bitmap.createBitmap(rgb, 0, imageWidth,
-                        imageWidth, imageHeight,
-                        Bitmap.Config.ARGB_4444);
-                svShow.setBitmap(BitmapUtils.rotateMyBitmap(bitmap2));
-                image.close();
-//            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+            Image mImage = reader.acquireNextImage();
+            ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
+            byte[] bytes = new byte[buffer.remaining()];
+            buffer.get(bytes);
+            FileOutputStream output = null;
+            try {
+                output = new FileOutputStream(mFile);
+                output.write(bytes);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                mImage.close();
+                if (null != output) {
+                    try {
+                        output.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
+//            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+//            Image image = reader.acquireLatestImage();
+//            if (image != null) {
+//                int imageWidth = image.getWidth();
+//                int imageHeight = image.getHeight();
+//                byte[] data68 = Camera2Util.getBytesFromImageAsType(image, 2);
+//                int rgb[] = Camera2Util.decodeYUV420SP(data68, imageWidth, imageHeight);
+//                Bitmap bitmap2 = Bitmap.createBitmap(rgb, 0, imageWidth,
+//                        imageWidth, imageHeight, Bitmap.Config.ARGB_8888);
+//                Bitmap d65bitmap = BitmapUtils.rotateMyBitmap(BitmapUtils.ImgaeToNegative(bitmap2));
+//                svShow.setBitmap(d65bitmap);
+//                image.close();
+//            }
+            Toast.makeText(GoogleCameraActivity.this,"拍照成功",Toast.LENGTH_SHORT).show();
+            setResult(AppConstant.RESULT_CODE.RESULT_OK);
+            finish();
         }
     };
 
@@ -423,9 +449,16 @@ public class GoogleCameraActivity extends BaseActivity {
                 }
                 // 静态图像捕获，选择最大可用大小。
                 Size largest = Collections.max(
-                        Arrays.asList(map.getOutputSizes(ImageFormat.YUV_420_888)),
+                        Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
                         new CompareSizesByArea());
-                mImageReader = ImageReader.newInstance(720, 960, ImageFormat.YUV_420_888, 2);
+                // w: 720  h :960
+//                Size largest = Collections.max(
+//                        Arrays.asList(map.getOutputSizes(ImageFormat.YUV_420_888)),
+//                        new CompareSizesByArea());
+//                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
+//                        ImageFormat.YUV_420_888, 2);
+                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
+                        ImageFormat.JPEG, 1);
                 mImageReader.setOnImageAvailableListener(
                         mOnImageAvailableListener, mBackgroundHandler);
 
@@ -586,7 +619,7 @@ public class GoogleCameraActivity extends BaseActivity {
             mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             mPreviewRequestBuilder.addTarget(surface);
             //添加这句话 可以在 mImageReader 监听回调中持续获取 预览图片
-            mPreviewRequestBuilder.addTarget(mImageReader.getSurface());
+//            mPreviewRequestBuilder.addTarget(mImageReader.getSurface());
             mCameraDevice.createCaptureSession(Arrays.asList(surface, mImageReader.getSurface()),
                     new CameraCaptureSession.StateCallback() {
 
@@ -796,6 +829,7 @@ public class GoogleCameraActivity extends BaseActivity {
      * 保存文件
      */
     private static class ImageSaver implements Runnable {
+//        private final Bitmap mImage;
         private final Image mImage;
         private final File mFile;
 
@@ -806,6 +840,7 @@ public class GoogleCameraActivity extends BaseActivity {
 
         @Override
         public void run() {
+//                mImage.compress(Bitmap.CompressFormat.JPEG, 100, output);
             ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
             byte[] bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
@@ -825,6 +860,7 @@ public class GoogleCameraActivity extends BaseActivity {
                     }
                 }
             }
+
         }
     }
 

@@ -7,14 +7,14 @@
     tools:context="cn.tongue.tonguecamera.ui.CameraActivity">
 
     <LinearLayout
-        android:layout_width="1dp"
+        android:layout_width="match_parent"
         android:layout_alignParentEnd="true"
-        android:layout_height="1dp">
+        android:layout_height="match_parent">
 
         <cn.tongue.tonguecamera.view.AutoFitTextureView
             android:id="@+id/textureView_g"
-            android:layout_width="1dp"
-            android:layout_height="1dp" />
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
     </LinearLayout>
 
@@ -22,6 +22,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentStart="true"
+        android:visibility="gone"
         android:orientation="horizontal">
 
         <cn.tongue.tonguecamera.view.ShowSurfaceView

@@ -19,6 +19,7 @@ import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.ExifInterface;
+import android.media.Image;
 import android.media.MediaScannerConnection;
 import android.util.Log;
 import android.view.View;
@@ -28,9 +29,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
+
+import cn.tongue.tonguecamera.bean.Lab;
 
 /**
  * Bitmap处理工具
+ *
  * @date 2019年1月25日 14:27:33
  */
 public class BitmapUtils {
@@ -78,7 +83,7 @@ public class BitmapUtils {
     /**
      * 返回适应屏幕尺寸的位图
      *
-     * @param bit bit
+     * @param bit    bit
      * @param config config
      */
     private static Bitmap getRightSzieBitmap(Bitmap bit, int config) {
@@ -105,7 +110,7 @@ public class BitmapUtils {
      * 返回适应屏幕的位图 更节省内存
      *
      * @param fileName file name
-     * @param config config
+     * @param config   config
      * @return Bitmap
      */
     public static Bitmap getRightSzieBitmap(String fileName, int config) {
@@ -163,56 +168,70 @@ public class BitmapUtils {
     }
 
     /**
-     * 将图片转换为负片
+     * 将图片 D65 转换 为位图
+     *
      * @param bitmap 原来图片
      * @return 新图片
      */
-    public static Bitmap ImgaeToNegative(Bitmap bitmap){
+    public static Bitmap ImgaeToNegative(Bitmap bitmap) {
         //其实我们获得宽和高就是图片像素的宽和高
         //它们的乘积就是总共一张图片拥有的像素点数
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();
 
-        Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-
-        int[] oldPx = new int[width*height];//用来存储旧的色素点的数组
-        int[] newPx = new int[width*height];//用来存储新的像素点的数组
+        Bitmap bmp = Bitmap.createBitmap(width, height, Config.ARGB_8888);
+        //用来存储旧的色素点的数组
+        int[] oldPx = new int[width * height];
+        //用来存储新的像素点的数组
+        int[] newPx = new int[width * height];
         int color;//用来存储原来颜色值
-        int r,g,b,a;//存储颜色的四个分量：红，绿，蓝，透明度
+        int r, g, b, a;//存储颜色的四个分量：红，绿，蓝，透明度
 
         //该方法用来将图片的像素写入到oldPx中，我们这样子设置，就会获取全部的像素点
         //第一个参数为写入的数组，第二个参数为读取第一个的像素点的偏移量，一般设置为0
         //第三个参数为写入时，多少个像素点作为一行,第三个和第四个参数为读取的起点坐标
         //第五个参数表示读取的长度，第六个表示读取的高度
         bitmap.getPixels(oldPx, 0, width, 0, 0, width, height);
+        // 存放 rgb
+        double[] rgbmap = new double[3];
         //下面用循环来处理每一个像素点
-        for(int i =0;i<width*height;i++){
-
-            color = oldPx[i];//获取一个原来的像素点
-            r = Color.red(color);//获取红色分量，下同
+        long startTime = System.currentTimeMillis();
+        for (int i = 0; i < width * height; i++) {
+            //获取一个原来的像素点
+            color = oldPx[i];
+            r = Color.red(color);
             g = Color.green(color);
             b = Color.blue(color);
             a = Color.alpha(color);
+            rgbmap[0] = r;
+            rgbmap[1] = g;
+            rgbmap[2] = b;
+            // D65 光源 换算
+            double[] xyz = LabUtil.sRGB2XYZ(rgbmap);
+            double[] lab = LabUtil.XYZ2Lab(xyz);
+
+            double[] xyz2 = LabUtil.Lab2XYZ(lab);
+            double[] rgb = LabUtil.XYZ2sRGB(xyz2);
 
             //下面计算生成新的颜色分量
-            r = 255 -r;
-            g = 255 - g;
-            b = 255 - b;
+            r = (int) rgb[0];
+            g = (int) rgb[1];
+            b = (int) rgb[2];
 
             //下面主要保证r g b 的值都必须在0~255之内
-            if(r>255){
+            if (r > 255) {
                 r = 255;
-            }else if(r<0){
+            } else if (r < 0) {
                 r = 0;
             }
-            if(g>255){
+            if (g > 255) {
                 g = 255;
-            }else if(g<0){
+            } else if (g < 0) {
                 g = 0;
             }
-            if(b>255){
+            if (b > 255) {
                 b = 255;
-            }else if(b<0){
+            } else if (b < 0) {
                 b = 0;
             }
             //下面合成新的像素点，并添加到newPx中
@@ -222,6 +241,7 @@ public class BitmapUtils {
         //然后重要的一步，为bmp设置新颜色了,该方法中的参数意义与getPixels中的一样
         //无非是将newPx写入到bmp中
         bmp.setPixels(newPx, 0, width, 0, 0, width, height);
+        Log.e("camera2", "图片转换需要时间 ："+ (System.currentTimeMillis()-startTime));
         return bmp;
     }
 
@@ -270,7 +290,7 @@ public class BitmapUtils {
      * 使圆角功能支持BitampDrawable
      *
      * @param bitmapDrawable bitmapDrawable
-     * @param pixels pixels
+     * @param pixels         pixels
      * @return BitmapDrawable
      */
     @SuppressWarnings("deprecation")
@@ -453,17 +473,18 @@ public class BitmapUtils {
 
     /**
      * 旋转 bitmap
+     *
      * @param bmp bitmap
      * @return 旋转后的 bitmap
      */
-    public static Bitmap rotateMyBitmap(Bitmap bmp){
+    public static Bitmap rotateMyBitmap(Bitmap bmp) {
         //*****旋转一下
         Matrix matrix = new Matrix();
         matrix.postRotate(90);
 
         Bitmap bitmap = Bitmap.createBitmap(bmp.getWidth(), bmp.getHeight(), Bitmap.Config.ARGB_8888);
 
-        Bitmap nbmp2 = Bitmap.createBitmap(bmp, 0,0, bmp.getWidth(),  bmp.getHeight(), matrix, true);
+        Bitmap nbmp2 = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
 
         return nbmp2;
     }
@@ -763,11 +784,11 @@ public class BitmapUtils {
         opt.inSampleSize = 1;
         //根据屏的大小和图片大小计算出缩放比例
         if (picWidth > picHeight) {
-            if (picWidth > screenWidth){
+            if (picWidth > screenWidth) {
                 opt.inSampleSize = picWidth / screenWidth;
             }
         } else {
-            if (picHeight > screenHeight){
+            if (picHeight > screenHeight) {
                 opt.inSampleSize = picHeight / screenHeight;
             }
         }
@@ -921,7 +942,7 @@ public class BitmapUtils {
         int maxHeight = maxWidth * 4 / 3;*/
 
         //  - SystemUtils.dp2px(context, 20)
-        int reqWidth = screenWidth ;
+        int reqWidth = screenWidth;
         int reqHeight = reqWidth * 4 / 3;
 
         bmp = createBitmap(bitmap, reqWidth, reqHeight);

@@ -35,7 +35,6 @@ public class Camera2Util {
             //获取源数据，如果是YUV格式的数据planes.length = 3
             //plane[i]里面的实际数据可能存在byte[].length <= capacity (缓冲区总大小)
             final Image.Plane[] planes = image.getPlanes();
-
             //数据有效宽度，一般的，图片width <= rowStride，这也是导致byte[].length <= capacity的原因
             // 所以我们只取width部分
             int width = image.getWidth();
@@ -100,9 +99,7 @@ public class Camera2Util {
                     }
                 }
             }
-
             //   image.close();
-
             //根据要求的结果类型进行填充
             switch (type) {
                 case YUV420P:
