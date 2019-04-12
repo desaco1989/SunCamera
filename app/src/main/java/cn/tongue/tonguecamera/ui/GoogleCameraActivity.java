@@ -296,7 +296,6 @@ public class GoogleCameraActivity extends BaseActivity {
 //                svShow.setBitmap(d65bitmap);
 //                image.close();
 //            }
-            Toast.makeText(GoogleCameraActivity.this,"拍照成功",Toast.LENGTH_SHORT).show();
             setResult(AppConstant.RESULT_CODE.RESULT_OK);
             finish();
         }

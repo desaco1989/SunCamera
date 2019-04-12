@@ -16,7 +16,6 @@ public class LabUtil {
      */
     private static boolean hasD50 = false;
 
-
     public static double[] Lab2XYZ(double[] Lab) {
         double[] XYZ = new double[3];
         double L, a, b;

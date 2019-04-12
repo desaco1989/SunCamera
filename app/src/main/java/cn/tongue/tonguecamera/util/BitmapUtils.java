@@ -196,6 +196,7 @@ public class BitmapUtils {
         double[] rgbmap = new double[3];
         //下面用循环来处理每一个像素点
         long startTime = System.currentTimeMillis();
+        int index = 0;
         for (int i = 0; i < width * height; i++) {
             //获取一个原来的像素点
             color = oldPx[i];
@@ -217,6 +218,10 @@ public class BitmapUtils {
             r = (int) rgb[0];
             g = (int) rgb[1];
             b = (int) rgb[2];
+
+            if(rgbmap[0]!=r || rgbmap[1]!=g || rgbmap[2]!=b){
+                index ++;
+            }
 
             //下面主要保证r g b 的值都必须在0~255之内
             if (r > 255) {
@@ -241,7 +246,8 @@ public class BitmapUtils {
         //然后重要的一步，为bmp设置新颜色了,该方法中的参数意义与getPixels中的一样
         //无非是将newPx写入到bmp中
         bmp.setPixels(newPx, 0, width, 0, 0, width, height);
-        Log.e("camera2", "图片转换需要时间 ："+ (System.currentTimeMillis()-startTime));
+        Log.e("camera2", "图片转换需要时间 ："+ (System.currentTimeMillis()-startTime)
+                +" 修改次数："+ index);
         return bmp;
     }
 

@@ -3,6 +3,7 @@ package cn.tongue.tonguecamera.ui;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
@@ -62,6 +63,7 @@ public class MainActivity extends BaseActivity {
     protected void initView() {
         mD65File= new File(getExternalFilesDir(null), "picD65.jpg");
         mFile = new File(getExternalFilesDir(null), "pic.jpg");
+
     }
 
     @Override
@@ -133,7 +135,6 @@ public class MainActivity extends BaseActivity {
                     }
                 }
             }).start();
-
         }
     }
 
