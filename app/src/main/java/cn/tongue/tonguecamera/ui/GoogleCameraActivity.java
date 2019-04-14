@@ -31,6 +31,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.util.Range;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
@@ -434,18 +435,32 @@ public class GoogleCameraActivity extends BaseActivity {
         try {
             for (String cameraId : manager.getCameraIdList()) {
                 CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
-
-                // 不使用前置摄像头
+                // 仅适用后置摄像头
                 Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
                 if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
                     continue;
                 }
-
+                //得到相机支持的流配置(包括支持的图片分辨率等),不支持就返回
                 StreamConfigurationMap map = characteristics.get(
                         CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
                 if (map == null) {
                     continue;
                 }
+                //获取支持的iso范围
+                Range<Integer> isoRange = characteristics.get(CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE);
+                // 曝光时长
+                int[] avails = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_MODES);
+                // 白平衡
+                int[] aa = characteristics.get(CameraCharacteristics.CONTROL_AWB_AVAILABLE_MODES);
+                
+                //得到最高和最低值
+                int isoMin = -1;
+                int isoMax = -1;
+                if (isoRange != null) {
+                    isoMin = isoRange.getLower();
+                    isoMax = isoRange.getUpper();
+                }
+
                 // 静态图像捕获，选择最大可用大小。
                 Size largest = Collections.max(
                         Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
@@ -487,7 +502,7 @@ public class GoogleCameraActivity extends BaseActivity {
                 int rotatedPreviewHeight = height;
                 int maxPreviewWidth = displaySize.x;
                 int maxPreviewHeight = displaySize.y;
-
+                //如果需要颠倒方向
                 if (swappedDimensions) {
                     rotatedPreviewWidth = height;
                     rotatedPreviewHeight = width;
@@ -633,7 +648,17 @@ public class GoogleCameraActivity extends BaseActivity {
                                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                                         CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                                 setAutoFlash(mPreviewRequestBuilder);
-                                // 显示相机预览
+                                //禁用所有自动设置
+                                //            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF);
+                                //只是禁用曝光，白平衡继续开启,自己设置iso等值，必须禁用曝光
+                                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF);
+                                //设置曝光时间
+                                mPreviewRequestBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, 10l);
+                                // 设置 iso 灵敏度
+                                mPreviewRequestBuilder.set(CaptureRequest.SENSOR_SENSITIVITY, 100);
+                                // 设置帧 持续时长
+                                mPreviewRequestBuilder.set(CaptureRequest.SENSOR_FRAME_DURATION, 10l);
+                                //需要预览的话改成这个并且添加到下面的createCaptureSession里
                                 mPreviewRequest = mPreviewRequestBuilder.build();
                                 mCaptureSession.setRepeatingRequest(mPreviewRequest,
                                         mCaptureCallback, mBackgroundHandler);
